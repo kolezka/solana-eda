@@ -1,20 +1,14 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { WorkersService } from './workers.service';
+import { WorkerStatusRecord } from '@solana-eda/database';
 
-class WorkerStatus {
+class WorkerStatusDTO {
   id!: string;
   name!: string;
-  status!: 'RUNNING' | 'STOPPED' | 'ERROR';
-  lastSeen!: string;
-  metrics!: {
-    eventsProcessed?: number;
-    errors?: number;
-    uptime?: number;
-    tradesExecuted?: number;
-    poolsMonitored?: number;
-    startTime?: number;
-  };
+  status!: string;
+  lastSeen!: Date;
+  metrics!: Record<string, unknown> | null;
 }
 
 @ApiTags('workers')
@@ -30,9 +24,9 @@ export class WorkersController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved all workers',
-    type: [WorkerStatus],
+    type: [WorkerStatusDTO],
   })
-  async getAllWorkers() {
+  async getAllWorkers(): Promise<WorkerStatusRecord[]> {
     return await this.workersService.getAllWorkers();
   }
 
@@ -44,9 +38,9 @@ export class WorkersController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved running workers',
-    type: [WorkerStatus],
+    type: [WorkerStatusDTO],
   })
-  async getRunningWorkers() {
+  async getRunningWorkers(): Promise<WorkerStatusRecord[]> {
     return await this.workersService.getRunningWorkers();
   }
 
@@ -58,9 +52,9 @@ export class WorkersController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved workers with errors',
-    type: [WorkerStatus],
+    type: [WorkerStatusDTO],
   })
-  async getWorkersWithError() {
+  async getWorkersWithError(): Promise<WorkerStatusRecord[]> {
     return await this.workersService.getWorkersWithError();
   }
 
@@ -80,9 +74,9 @@ export class WorkersController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved stale workers',
-    type: [WorkerStatus],
+    type: [WorkerStatusDTO],
   })
-  async getStaleWorkers(@Query('olderThanMinutes') olderThanMinutes: number = 5) {
+  async getStaleWorkers(@Query('olderThanMinutes') olderThanMinutes: number = 5): Promise<WorkerStatusRecord[]> {
     return await this.workersService.getStaleWorkers(olderThanMinutes);
   }
 
@@ -99,13 +93,13 @@ export class WorkersController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved worker status',
-    type: WorkerStatus,
+    type: WorkerStatusDTO,
   })
   @ApiResponse({
     status: 404,
     description: 'Worker not found',
   })
-  async getWorkerByName(@Param('name') name: string) {
+  async getWorkerByName(@Param('name') name: string): Promise<WorkerStatusRecord | null> {
     return await this.workersService.getWorkerByName(name);
   }
 }

@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/client';
+import { PrismaClient, LiquidityPoolRecord } from '../generated/client';
 export class LiquidityPoolRepository {
   constructor(private prisma: PrismaClient) {}
 
@@ -9,7 +9,7 @@ export class LiquidityPoolRepository {
     tvl: number;
     price: number;
     volume24h: number;
-  }) {
+  }): Promise<LiquidityPoolRecord> {
     return await this.prisma.liquidityPoolRecord.upsert({
       where: { address: data.address },
       update: {
@@ -22,20 +22,20 @@ export class LiquidityPoolRepository {
     });
   }
 
-  async findByAddress(address: string) {
+  async findByAddress(address: string): Promise<LiquidityPoolRecord | null> {
     return await this.prisma.liquidityPoolRecord.findUnique({
       where: { address },
     });
   }
 
-  async findAll(limit: number = 50) {
+  async findAll(limit: number = 50): Promise<LiquidityPoolRecord[]> {
     return await this.prisma.liquidityPoolRecord.findMany({
       orderBy: { updatedAt: 'desc' },
       take: limit,
     });
   }
 
-  async findByTokenPair(tokenA: string, tokenB: string) {
+  async findByTokenPair(tokenA: string, tokenB: string): Promise<LiquidityPoolRecord | null> {
     return await this.prisma.liquidityPoolRecord.findFirst({
       where: {
         OR: [
@@ -46,7 +46,7 @@ export class LiquidityPoolRepository {
     });
   }
 
-  async findHighVolumePools(minVolume: number = 10000, limit: number = 20) {
+  async findHighVolumePools(minVolume: number = 10000, limit: number = 20): Promise<LiquidityPoolRecord[]> {
     return await this.prisma.liquidityPoolRecord.findMany({
       where: { volume24h: { gte: minVolume } },
       orderBy: { volume24h: 'desc' },

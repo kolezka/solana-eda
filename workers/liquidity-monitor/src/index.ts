@@ -6,14 +6,14 @@ import {
   PoolParser,
   ParsedPoolData,
 } from '@solana-eda/solana-client';
-import { getPrismaClient, LiquidityPoolRepository } from '@solana-eda/database';
+import { PrismaClient, LiquidityPoolRepository } from '@solana-eda/database';
 import { createLiquidityEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
 
 dotenv.config();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const prisma = getPrismaClient();
+const prisma = new PrismaClient(undefined as never);
 const poolRepo = new LiquidityPoolRepository(prisma);
 const workerStatusRepo = new WorkerStatusRepository(prisma);
 

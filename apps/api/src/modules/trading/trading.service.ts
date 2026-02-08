@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { TradeSettingsRepository, TradeRepository } from '@solana-eda/database';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class TradingService {
-  constructor(@Inject('PRISMA') private prisma: PrismaClient) {
+  constructor(@Inject('PRISMA') private prisma: PrismaService) {
     this.settingsRepo = new TradeSettingsRepository(this.prisma);
     this.tradeRepo = new TradeRepository(this.prisma);
   }

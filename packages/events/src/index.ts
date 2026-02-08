@@ -7,8 +7,11 @@ import type {
   PositionOpenedEvent,
   PositionClosedEvent,
   WorkerStatusEvent,
+  PriceUpdateEvent,
 } from '@solana-eda/types';
-import { createClient } from 'ioredis';
+import Redis from 'ioredis';
+
+export { Redis as createClient };
 
 // Redis channel names
 export const CHANNELS = {
@@ -17,6 +20,7 @@ export const CHANNELS = {
   EVENTS_TRADES: 'events:trades',
   EVENTS_POSITIONS: 'events:positions',
   EVENTS_DEX_COMPARISON: 'events:dex-comparison',
+  EVENTS_PRICE: 'events:price',
   WORKERS_STATUS: 'workers:status',
   COMMANDS_TRADING: 'commands:trading',
   COMMANDS_WORKERS: 'commands:workers',
@@ -116,6 +120,27 @@ export const WorkerStatusEventSchema = z.object({
   }),
 });
 
+export const PriceUpdateEventSchema = z.object({
+  type: z.literal('PRICE_UPDATE'),
+  timestamp: z.string(),
+  id: z.string(),
+  data: z.object({
+    token: z.string(),
+    price: z.string(),
+    source: z.string(),
+    confidence: z.number(),
+    volume24h: z.string().optional(),
+    priceChange24h: z.number().optional(),
+    sources: z.array(
+      z.object({
+        dex: z.string(),
+        price: z.string(),
+        volume24h: z.string().optional(),
+      }),
+    ),
+  }),
+});
+
 export const DEXQuoteComparisonEventSchema = z.object({
   type: z.literal('DEX_QUOTE_COMPARISON'),
   timestamp: z.string(),
@@ -148,6 +173,7 @@ export const EventSchema = z.discriminatedUnion('type', [
   PositionOpenedEventSchema,
   PositionClosedEventSchema,
   WorkerStatusEventSchema,
+  PriceUpdateEventSchema,
   DEXQuoteComparisonEventSchema,
 ]);
 
@@ -178,6 +204,10 @@ export function isPositionClosedEvent(event: AnyEvent): event is PositionClosedE
 
 export function isWorkerStatusEvent(event: AnyEvent): event is WorkerStatusEvent {
   return event.type === 'WORKER_STATUS';
+}
+
+export function isPriceUpdateEvent(event: AnyEvent): event is PriceUpdateEvent {
+  return event.type === 'PRICE_UPDATE';
 }
 
 export function isDEXQuoteComparisonEvent(event: AnyEvent): event is DEXQuoteComparisonEvent {
@@ -252,6 +282,17 @@ export function createWorkerStatusEvent(
   };
 }
 
+export function createPriceUpdateEvent(
+  data: z.infer<typeof PriceUpdateEventSchema>['data'],
+): AnyEvent {
+  return {
+    type: 'PRICE_UPDATE',
+    timestamp: new Date().toISOString(),
+    id: `price-${Date.now()}`,
+    data,
+  };
+}
+
 export function createDEXQuoteComparisonEvent(
   data: z.infer<typeof DEXQuoteComparisonEventSchema>['data'],
 ): AnyEvent {
@@ -262,5 +303,3 @@ export function createDEXQuoteComparisonEvent(
     data,
   };
 }
-
-export { createClient };

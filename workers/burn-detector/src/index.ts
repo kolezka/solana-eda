@@ -6,14 +6,14 @@ import {
   TransactionParser,
   ParsedBurnTransaction,
 } from '@solana-eda/solana-client';
-import { getPrismaClient, BurnEventRepository } from '@solana-eda/database';
+import { PrismaClient, BurnEventRepository } from '@solana-eda/database';
 import { createBurnEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
 
 dotenv.config();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const prisma = getPrismaClient();
+const prisma = new PrismaClient(undefined as never);
 const burnEventRepo = new BurnEventRepository(prisma);
 const workerStatusRepo = new WorkerStatusRepository(prisma);
 

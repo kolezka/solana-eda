@@ -1,7 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { validateEvent, CHANNELS } from '@solana-eda/events';
-import { PrismaClient } from '@prisma/client';
 import {
   BurnEventRepository,
   LiquidityPoolRepository,
@@ -9,6 +7,7 @@ import {
   PositionRepository,
   PriceRepository,
 } from '@solana-eda/database';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class EventsService {
@@ -20,7 +19,7 @@ export class EventsService {
 
   constructor(
     @Inject('REDIS') private redis: Redis,
-    @Inject('PRISMA') private prisma: PrismaClient,
+    @Inject('PRISMA') private prisma: PrismaService,
   ) {
     this.burnEventRepo = new BurnEventRepository(prisma);
     this.liquidityPoolRepo = new LiquidityPoolRepository(prisma);

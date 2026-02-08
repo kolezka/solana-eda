@@ -1,4 +1,6 @@
-import { PrismaClient } from '../generated/client';
+import { PrismaClient, Position, Trade } from '../generated/client';
+
+type PositionWithTrades = Position & { trades: Trade[] };
 
 export class PositionRepository {
   constructor(private prisma: PrismaClient) {}
@@ -11,7 +13,7 @@ export class PositionRepository {
     currentPrice: number;
     stopLoss?: number;
     takeProfit?: number;
-  }) {
+  }): Promise<PositionWithTrades> {
     return await this.prisma.position.create({
       data: data.accountId
         ? {
@@ -37,14 +39,14 @@ export class PositionRepository {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<(PositionWithTrades) | null> {
     return await this.prisma.position.findUnique({
       where: { id },
       include: { trades: true },
     });
   }
 
-  async findOpenPositions() {
+  async findOpenPositions(): Promise<(PositionWithTrades)[]> {
     return await this.prisma.position.findMany({
       where: { status: 'OPEN' },
       include: { trades: true },
@@ -52,7 +54,7 @@ export class PositionRepository {
     });
   }
 
-  async findClosedPositions(limit: number = 50) {
+  async findClosedPositions(limit: number = 50): Promise<(PositionWithTrades)[]> {
     return await this.prisma.position.findMany({
       where: { status: 'CLOSED' },
       include: { trades: true },
@@ -61,7 +63,7 @@ export class PositionRepository {
     });
   }
 
-  async findByToken(token: string) {
+  async findByToken(token: string): Promise<(PositionWithTrades)[]> {
     return await this.prisma.position.findMany({
       where: { token },
       include: { trades: true },
@@ -69,7 +71,7 @@ export class PositionRepository {
     });
   }
 
-  async updateCurrentPrice(id: string, currentPrice: number) {
+  async updateCurrentPrice(id: string, currentPrice: number): Promise<Position | null> {
     const position = await this.prisma.position.findUnique({
       where: { id },
     });
@@ -89,7 +91,7 @@ export class PositionRepository {
     id: string,
     exitPrice: number,
     closeReason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT',
-  ) {
+  ): Promise<PositionWithTrades> {
     return await this.prisma.position.update({
       where: { id },
       data: {

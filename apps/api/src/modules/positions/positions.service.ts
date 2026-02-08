@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { PositionRepository } from '@solana-eda/database';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class PositionsService {
-  constructor(@Inject('PRISMA') private prisma: PrismaClient) {
+  constructor(@Inject('PRISMA') private prisma: PrismaService) {
     this.positionRepo = new PositionRepository(this.prisma);
   }
 
   private positionRepo: PositionRepository;
 
   async getAllPositions() {
-    return await this.positionRepo.findOpenPositions();
+    return this.positionRepo.findOpenPositions();
   }
 
   async getOpenPositions() {

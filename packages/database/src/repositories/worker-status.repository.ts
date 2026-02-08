@@ -1,5 +1,4 @@
-import { Prisma, PrismaClient } from '../generated/client';
-
+import { Prisma, PrismaClient, WorkerStatusRecord } from '../generated/client';
 export class WorkerStatusRepository {
   constructor(private prisma: PrismaClient) {}
 
@@ -7,7 +6,7 @@ export class WorkerStatusRepository {
     name: string;
     status: 'RUNNING' | 'STOPPED' | 'ERROR';
     metrics: Record<string, unknown>;
-  }) {
+  }): Promise<WorkerStatusRecord> {
     return await this.prisma.workerStatusRecord.upsert({
       where: { name: data.name },
       update: {
@@ -24,33 +23,33 @@ export class WorkerStatusRepository {
     });
   }
 
-  async findByName(name: string) {
+  async findByName(name: string): Promise<WorkerStatusRecord | null> {
     return await this.prisma.workerStatusRecord.findUnique({
       where: { name },
     });
   }
 
-  async findAll() {
+  async findAll(): Promise<WorkerStatusRecord[]> {
     return await this.prisma.workerStatusRecord.findMany({
       orderBy: { lastSeen: 'desc' },
     });
   }
 
-  async findRunning() {
+  async findRunning(): Promise<WorkerStatusRecord[]> {
     return await this.prisma.workerStatusRecord.findMany({
       where: { status: 'RUNNING' },
       orderBy: { lastSeen: 'desc' },
     });
   }
 
-  async findWithError() {
+  async findWithError(): Promise<WorkerStatusRecord[]> {
     return await this.prisma.workerStatusRecord.findMany({
       where: { status: 'ERROR' },
       orderBy: { lastSeen: 'desc' },
     });
   }
 
-  async findStaleWorkers(olderThanMinutes: number = 5) {
+  async findStaleWorkers(olderThanMinutes: number = 5): Promise<WorkerStatusRecord[]> {
     const cutoffDate = new Date();
     cutoffDate.setMinutes(cutoffDate.getMinutes() - olderThanMinutes);
 
@@ -64,14 +63,14 @@ export class WorkerStatusRepository {
     });
   }
 
-  async updateStatus(name: string, status: 'RUNNING' | 'STOPPED' | 'ERROR') {
+  async updateStatus(name: string, status: 'RUNNING' | 'STOPPED' | 'ERROR'): Promise<WorkerStatusRecord> {
     return await this.prisma.workerStatusRecord.update({
       where: { name },
       data: { status, lastSeen: new Date() },
     });
   }
 
-  async updateMetrics(name: string, metrics: Record<string, unknown>) {
+  async updateMetrics(name: string, metrics: Record<string, unknown>): Promise<WorkerStatusRecord | null> {
     const worker = await this.findByName(name);
     if (!worker) return null;
 
@@ -86,7 +85,7 @@ export class WorkerStatusRepository {
     });
   }
 
-  async incrementEventsProcessed(name: string) {
+  async incrementEventsProcessed(name: string): Promise<WorkerStatusRecord | null> {
     const worker = await this.findByName(name);
     if (!worker) return null;
 
@@ -102,7 +101,7 @@ export class WorkerStatusRepository {
     });
   }
 
-  async incrementErrors(name: string) {
+  async incrementErrors(name: string): Promise<WorkerStatusRecord | null> {
     const worker = await this.findByName(name);
     if (!worker) return null;
 

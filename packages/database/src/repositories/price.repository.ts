@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/client';
+import { PrismaClient, PriceRecord } from '../generated/client';
 
 export class PriceRepository {
   constructor(private prisma: PrismaClient) {}
@@ -9,7 +9,7 @@ export class PriceRepository {
     source: string;
     confidence: number;
     volume24h?: number;
-  }) {
+  }): Promise<PriceRecord> {
     return await this.prisma.priceRecord.create({
       data: {
         token: data.token,
@@ -21,14 +21,14 @@ export class PriceRepository {
     });
   }
 
-  async findLatestByToken(token: string) {
+  async findLatestByToken(token: string): Promise<PriceRecord | null> {
     return await this.prisma.priceRecord.findFirst({
       where: { token },
       orderBy: { timestamp: 'desc' },
     });
   }
 
-  async findByToken(token: string, limit: number = 100) {
+  async findByToken(token: string, limit: number = 100): Promise<PriceRecord[]> {
     return await this.prisma.priceRecord.findMany({
       where: { token },
       orderBy: { timestamp: 'desc' },
@@ -36,7 +36,7 @@ export class PriceRepository {
     });
   }
 
-  async findByTokenInRange(token: string, start: Date, end: Date) {
+  async findByTokenInRange(token: string, start: Date, end: Date): Promise<PriceRecord[]> {
     return await this.prisma.priceRecord.findMany({
       where: {
         token,
@@ -49,7 +49,7 @@ export class PriceRepository {
     });
   }
 
-  async cleanup(olderThanDays: number) {
+  async cleanup(olderThanDays: number): Promise<{ count: number }> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 

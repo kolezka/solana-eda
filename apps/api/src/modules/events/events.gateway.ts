@@ -90,7 +90,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
       CHANNELS.EVENTS_LIQUIDITY,
       CHANNELS.EVENTS_TRADES,
       CHANNELS.EVENTS_POSITIONS,
-      CHANNELS.EVENTS_PRICE,
       CHANNELS.WORKERS_STATUS,
     ];
 

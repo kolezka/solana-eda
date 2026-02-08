@@ -7,7 +7,7 @@ import {
   SwapResult,
 } from '@solana-eda/solana-client';
 import {
-  getPrismaClient,
+  PrismaClient,
   PositionRepository,
   TradeRepository,
   TradeSettingsRepository,
@@ -26,7 +26,7 @@ import { Keypair, PublicKey } from '@solana/web3.js';
 dotenv.config();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const prisma = getPrismaClient();
+const prisma = new PrismaClient(undefined as never);
 const positionRepo = new PositionRepository(prisma);
 const tradeRepo = new TradeRepository(prisma);
 const settingsRepo = new TradeSettingsRepository(prisma);
@@ -124,17 +124,25 @@ class TradingBotWorker {
     const subscriber = redis.duplicate();
     await subscriber.connect();
 
-    await subscriber.subscribe(CHANNELS.EVENTS_BURN, (message) => {
-      if (!this.running) return;
+    await subscriber.subscribe(CHANNELS.EVENTS_BURN);
 
-      try {
-        const event = validateEvent(JSON.parse(message));
-        await this.handleBurnEvent(event);
-      } catch (error) {
-        console.error(`[TradingBot] Error parsing burn event:`, error);
-        this.metrics.errors++;
-        await this.updateWorkerStatus('ERROR', error?.message);
-      }
+    subscriber.on('message', (channel, message) => {
+      if (channel !== CHANNELS.EVENTS_BURN || !this.running) return;
+
+      (async () => {
+        try {
+          const parsed = JSON.parse(message) as unknown;
+          const event = validateEvent(parsed);
+          await this.handleBurnEvent(event);
+        } catch (error) {
+          console.error(`[TradingBot] Error parsing burn event:`, error);
+          this.metrics.errors++;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          await this.updateWorkerStatus('ERROR', errorMessage);
+        }
+      })().catch((err) => {
+        console.error(`[TradingBot] Unhandled error in event handler:`, err);
+      });
     });
 
     console.log(`[TradingBot] Subscribed to burn events channel`);
@@ -223,18 +231,18 @@ class TradingBotWorker {
       const position = await positionRepo.create({
         token,
         amount: Number(bestQuote.outAmount),
-        entryPrice: price.toString(),
-        currentPrice: price.toString(),
-        stopLoss: stopLoss.toString(),
-        takeProfit: takeProfit.toString(),
+        entryPrice: price,
+        currentPrice: price,
+        stopLoss,
+        takeProfit,
       });
 
       await tradeRepo.create({
         positionId: position.id,
         type: 'BUY',
         amount: Number(bestQuote.outAmount),
-        price: price.toString(),
-        signature: swapResult.signature,
+        price,
+        signature: swapResult.signature ?? '',
         slippage: swapResult.actualSlippage,
       });
 
@@ -243,15 +251,15 @@ class TradingBotWorker {
         timestamp: new Date().toISOString(),
         id: `trade-${Date.now()}`,
         data: {
-          tradeId: swapResult.signature,
+          tradeId: swapResult.signature ?? '',
           type: 'BUY',
           tokenIn: USDC_MINT,
           tokenOut: token,
-          amountIn: bestQuote.inAmount,
-          amountOut: bestQuote.outAmount,
+          amountIn: bestQuote.inAmount ?? '0',
+          amountOut: bestQuote.outAmount ?? '0',
           price: price.toString(),
           slippage: swapResult.actualSlippage,
-          txSignature: swapResult.signature,
+          txSignature: swapResult.signature ?? '',
           positionId: position.id,
         },
       };
@@ -265,7 +273,7 @@ class TradingBotWorker {
         data: {
           positionId: position.id,
           token,
-          amount: bestQuote.outAmount,
+          amount: bestQuote.outAmount ?? '0',
           entryPrice: price.toString(),
           stopLoss: stopLoss.toString(),
           takeProfit: takeProfit.toString(),
@@ -353,8 +361,8 @@ class TradingBotWorker {
         positionId: position.id,
         type: 'SELL',
         amount,
-        price: currentPrice.toString(),
-        signature: swapResult.signature,
+        price: currentPrice,
+        signature: swapResult.signature ?? '',
         slippage: swapResult.actualSlippage,
       });
 
@@ -363,15 +371,15 @@ class TradingBotWorker {
         timestamp: new Date().toISOString(),
         id: `trade-${Date.now()}`,
         data: {
-          tradeId: swapResult.signature,
+          tradeId: swapResult.signature ?? '',
           type: 'SELL',
           tokenIn: position.token,
           tokenOut: USDC_MINT,
           amountIn: amount.toString(),
-          amountOut: bestQuote.outAmount,
+          amountOut: bestQuote.outAmount ?? '0',
           price: currentPrice.toString(),
           slippage: swapResult.actualSlippage,
-          txSignature: swapResult.signature,
+          txSignature: swapResult.signature ?? '',
           positionId: position.id,
         },
       };

@@ -1,4 +1,6 @@
-import { PrismaClient } from '../generated/client';
+import { PrismaClient, Trade, Position } from '../generated/client';
+
+type TradeWithPosition = Trade & { position: Position | null };
 
 export class TradeRepository {
   constructor(private prisma: PrismaClient) {}
@@ -10,7 +12,7 @@ export class TradeRepository {
     price: number;
     signature: string;
     slippage: number;
-  }) {
+  }): Promise<Trade> {
     return await this.prisma.trade.create({
       data: {
         ...data,
@@ -21,28 +23,28 @@ export class TradeRepository {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<(TradeWithPosition) | null> {
     return await this.prisma.trade.findUnique({
       where: { id },
       include: { position: true },
     });
   }
 
-  async findByPositionId(positionId: string) {
+  async findByPositionId(positionId: string): Promise<Trade[]> {
     return await this.prisma.trade.findMany({
       where: { positionId },
       orderBy: { timestamp: 'desc' },
     });
   }
 
-  async findBySignature(signature: string) {
+  async findBySignature(signature: string): Promise<(TradeWithPosition) | null> {
     return await this.prisma.trade.findUnique({
       where: { signature },
       include: { position: true },
     });
   }
 
-  async findRecent(limit: number = 50) {
+  async findRecent(limit: number = 50): Promise<(TradeWithPosition)[]> {
     return await this.prisma.trade.findMany({
       orderBy: { timestamp: 'desc' },
       take: limit,
@@ -50,7 +52,7 @@ export class TradeRepository {
     });
   }
 
-  async findTradesByType(type: 'BUY' | 'SELL', limit: number = 50) {
+  async findTradesByType(type: 'BUY' | 'SELL', limit: number = 50): Promise<(TradeWithPosition)[]> {
     return await this.prisma.trade.findMany({
       where: { type },
       orderBy: { timestamp: 'desc' },

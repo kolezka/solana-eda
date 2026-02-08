@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/client';
+import { PrismaClient, TradeSettings } from '../generated/client';
 
 export class TradeSettingsRepository {
   constructor(private prisma: PrismaClient) {}
@@ -11,7 +11,7 @@ export class TradeSettingsRepository {
     stopLossPercent?: number;
     takeProfitPercent?: number;
     minBurnAmount?: number;
-  }) {
+  }): Promise<TradeSettings> {
     return await this.prisma.tradeSettings.create({
       data: {
         ...data,
@@ -24,25 +24,25 @@ export class TradeSettingsRepository {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string): Promise<TradeSettings | null> {
     return await this.prisma.tradeSettings.findUnique({
       where: { id },
     });
   }
 
-  async findByName(name: string) {
+  async findByName(name: string): Promise<TradeSettings | null> {
     return await this.prisma.tradeSettings.findUnique({
       where: { name },
     });
   }
 
-  async findEnabled() {
+  async findEnabled(): Promise<TradeSettings[]> {
     return await this.prisma.tradeSettings.findMany({
       where: { enabled: true },
     });
   }
 
-  async findAll() {
+  async findAll(): Promise<TradeSettings[]> {
     return await this.prisma.tradeSettings.findMany();
   }
 
@@ -56,7 +56,7 @@ export class TradeSettingsRepository {
       takeProfitPercent: number;
       minBurnAmount: number;
     }>,
-  ) {
+  ): Promise<TradeSettings> {
     return await this.prisma.tradeSettings.update({
       where: { id },
       data: { ...data, updatedAt: new Date() },
@@ -73,14 +73,14 @@ export class TradeSettingsRepository {
       takeProfitPercent: number;
       minBurnAmount: number;
     }>,
-  ) {
+  ): Promise<TradeSettings> {
     return await this.prisma.tradeSettings.update({
       where: { name },
       data: { ...data, updatedAt: new Date() },
     });
   }
 
-  async toggleEnabled(id: string) {
+  async toggleEnabled(id: string): Promise<TradeSettings | null> {
     const settings = await this.findById(id);
     if (!settings) return null;
 
