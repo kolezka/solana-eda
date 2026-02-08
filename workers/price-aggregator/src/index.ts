@@ -1,15 +1,8 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import {
-  CHANNELS,
-  createPriceUpdateEvent,
-  createWorkerStatusEvent,
-} from '@solana-eda/events';
-import {
-  PriceRepository,
-  WorkerStatusRepository,
-} from '@solana-eda/database';
+import { CHANNELS, createPriceUpdateEvent, createWorkerStatusEvent } from '@solana-eda/events';
+import { PriceRepository, WorkerStatusRepository } from '@solana-eda/database';
 import { SolanaConnectionManager } from '@solana-eda/solana-client';
 import { Keypair } from '@solana/web3.js';
 import { getLogger, LogLevel } from '@solana-eda/monitoring';
@@ -21,7 +14,7 @@ const logger = getLogger('price-aggregator');
 
 // Configuration
 const TRACKED_TOKENS = process.env.TRACKED_TOKENS
-  ? process.env.TRACKED_TOKENS.split(',').map(t => t.trim())
+  ? process.env.TRACKED_TOKENS.split(',').map((t) => t.trim())
   : [
       'So11111111111111111111111111111111111111112', // SOL
       'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
@@ -31,14 +24,15 @@ const PRICE_POLL_INTERVAL = parseInt(process.env.PRICE_POLL_INTERVAL || '10000',
 const WORKER_NAME = process.env.WORKER_NAME || 'price-aggregator';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/solana_eda';
+const DATABASE_URL =
+  process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/solana_eda';
 const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 const SOLANA_WS_URL = process.env.SOLANA_WS_URL;
 
 // Get private key from environment
 const PRIVATE_KEY_BYTES = Buffer.from(
   (process.env.TRADING_PRIVATE_KEY || '').replace(/0x/, ''),
-  'base64'
+  'base64',
 );
 
 interface DEXPriceSource {
@@ -73,10 +67,7 @@ class PriceAggregatorWorker {
 
   constructor() {
     // Initialize Solana connection
-    this.connection = new SolanaConnectionManager(
-      SOLANA_RPC_URL,
-      SOLANA_WS_URL
-    );
+    this.connection = new SolanaConnectionManager(SOLANA_RPC_URL, SOLANA_WS_URL);
 
     // Initialize Redis
     this.redis = new Redis(REDIS_URL);
@@ -97,10 +88,7 @@ class PriceAggregatorWorker {
     await this.publishWorkerStatus();
 
     // Start polling
-    this.pollInterval = setInterval(
-      () => this.pollPrices(),
-      PRICE_POLL_INTERVAL
-    );
+    this.pollInterval = setInterval(() => this.pollPrices(), PRICE_POLL_INTERVAL);
 
     // Do initial poll
     await this.pollPrices();
@@ -208,7 +196,7 @@ class PriceAggregatorWorker {
         throw new Error(`Jupiter API error: ${response.status}`);
       }
 
-      const quote = await response.json() as { outAmount?: string; inAmount?: string };
+      const quote = (await response.json()) as { outAmount?: string; inAmount?: string };
 
       if (!quote.outAmount || !quote.inAmount) {
         throw new Error('Invalid quote response from Jupiter API');
@@ -271,32 +259,23 @@ class PriceAggregatorWorker {
   private async processPriceUpdate(priceData: TokenPrice): Promise<void> {
     try {
       // Calculate VWAP across sources
-      const totalVolume = priceData.sources.reduce(
-        (sum, s) => sum + (s.volume24h || 0),
-        0
-      );
+      const totalVolume = priceData.sources.reduce((sum, s) => sum + (s.volume24h || 0), 0);
 
       let vwap = priceData.price;
       if (totalVolume > 0) {
         vwap =
-          priceData.sources.reduce(
-            (sum, s) => sum + s.price * (s.volume24h || 0),
-            0
-          ) / totalVolume;
+          priceData.sources.reduce((sum, s) => sum + s.price * (s.volume24h || 0), 0) / totalVolume;
       }
 
       // Assign confidence score based on source count and price spread
-      const prices = priceData.sources.map(s => s.price);
+      const prices = priceData.sources.map((s) => s.price);
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
       const spread = maxPrice > 0 ? (maxPrice - minPrice) / maxPrice : 0;
 
       // Higher confidence with more sources and lower spread
       const sourceCount = priceData.sources.length;
-      const confidence = Math.min(
-        1.0,
-        (sourceCount / 4) * (1 - spread)
-      );
+      const confidence = Math.min(1.0, (sourceCount / 4) * (1 - spread));
 
       const finalPriceData = {
         ...priceData,
@@ -326,7 +305,7 @@ class PriceAggregatorWorker {
         confidence,
         volume24h: totalVolume?.toString(),
         priceChange24h: priceData.priceChange24h,
-        sources: priceData.sources.map(s => ({
+        sources: priceData.sources.map((s) => ({
           dex: s.dex,
           price: s.price.toString(),
           volume24h: s.volume24h?.toString(),
@@ -336,7 +315,7 @@ class PriceAggregatorWorker {
       await this.redis.publish(CHANNELS.EVENTS_PRICE, JSON.stringify(event));
 
       logger.debug(
-        `Price updated: ${priceData.token} = $${vwap.toFixed(6)} (confidence: ${(confidence * 100).toFixed(1)}%)`
+        `Price updated: ${priceData.token} = $${vwap.toFixed(6)} (confidence: ${(confidence * 100).toFixed(1)}%)`,
       );
     } catch (error) {
       logger.error('Error processing price update:', error as Error);

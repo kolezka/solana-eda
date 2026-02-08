@@ -1,91 +1,92 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../src/generated"
+  engineType   = "client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
+
 model Account {
-  id          String   @id @default(cuid())
-  publicKey   String   @unique
-  balance     Decimal  @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  positions   Position[]
+  id        String     @id @default(cuid())
+  publicKey String     @unique
+  balance   Decimal    @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  positions Position[]
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
-  signature   String   @unique
-  type        String   // 'BURN', 'SWAP', 'TRANSFER'
-  amount      Decimal
-  token       String
-  from        String?
-  to          String?
-  timestamp   DateTime @default(now())
+  id        String   @id @default(cuid())
+  signature String   @unique
+  type      String // 'BURN', 'SWAP', 'TRANSFER'
+  amount    Decimal
+  token     String
+  from      String?
+  to        String?
+  timestamp DateTime @default(now())
 }
 
 model Position {
-  id            String       @id @default(cuid())
-  accountId     String?
-  account       Account?     @relation(fields: [accountId], references: [id])
-  token         String
-  amount        Decimal
-  entryPrice    Decimal
-  currentPrice  Decimal
-  pnl           Decimal      @default(0)
-  status        String       // 'OPEN', 'CLOSED'
-  openedAt      DateTime     @default(now())
-  closedAt      DateTime?
-  stopLoss      Decimal?
-  takeProfit    Decimal?
-  trades        Trade[]
+  id           String    @id @default(cuid())
+  accountId    String?
+  account      Account?  @relation(fields: [accountId], references: [id])
+  token        String
+  amount       Decimal
+  entryPrice   Decimal
+  currentPrice Decimal
+  pnl          Decimal   @default(0)
+  status       String // 'OPEN', 'CLOSED'
+  openedAt     DateTime  @default(now())
+  closedAt     DateTime?
+  stopLoss     Decimal?
+  takeProfit   Decimal?
+  trades       Trade[]
 }
 
 model Trade {
-  id          String   @id @default(cuid())
-  positionId  String
-  position    Position @relation(fields: [positionId], references: [id])
-  type        String   // 'BUY', 'SELL'
-  amount      Decimal
-  price       Decimal
-  signature   String   @unique
-  slippage    Decimal
-  timestamp   DateTime @default(now())
+  id         String   @id @default(cuid())
+  positionId String
+  position   Position @relation(fields: [positionId], references: [id])
+  type       String // 'BUY', 'SELL'
+  amount     Decimal
+  price      Decimal
+  signature  String   @unique
+  slippage   Decimal
+  timestamp  DateTime @default(now())
 }
 
 model BurnEventRecord {
-  id              String   @id @default(cuid())
-  txSignature     String   @unique
-  token           String
-  amount          Decimal
-  percentage      Decimal
-  timestamp       DateTime @default(now())
-  processed       Boolean  @default(false)
+  id          String   @id @default(cuid())
+  txSignature String   @unique
+  token       String
+  amount      Decimal
+  percentage  Decimal
+  timestamp   DateTime @default(now())
+  processed   Boolean  @default(false)
 }
 
 model LiquidityPoolRecord {
-  id          String   @id @default(cuid())
-  address     String   @unique
-  tokenA      String
-  tokenB      String
-  tvl         Decimal
-  price       Decimal
-  volume24h   Decimal
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  address   String   @unique
+  tokenA    String
+  tokenB    String
+  tvl       Decimal
+  price     Decimal
+  volume24h Decimal
+  updatedAt DateTime @updatedAt
 }
 
 model WorkerStatusRecord {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  status      String   // 'RUNNING', 'STOPPED', 'ERROR'
-  lastSeen    DateTime @default(now())
-  metrics     Json     // { eventsProcessed: number, errors: number, uptime: number }
+  id       String   @id @default(cuid())
+  name     String   @unique
+  status   String // 'RUNNING', 'STOPPED', 'ERROR'
+  lastSeen DateTime @default(now())
+  metrics  Json // { eventsProcessed: number, errors: number, uptime: number }
 }
 
 model TradeSettings {
@@ -101,13 +102,13 @@ model TradeSettings {
 }
 
 model PriceRecord {
-  id          String   @id @default(cuid())
-  token       String
-  price       Decimal
-  source      String
-  confidence  Decimal
-  volume24h   Decimal?
-  timestamp   DateTime @default(now())
+  id         String   @id @default(cuid())
+  token      String
+  price      Decimal
+  source     String
+  confidence Decimal
+  volume24h  Decimal?
+  timestamp  DateTime @default(now())
 
   @@index([token, timestamp])
   @@index([token])

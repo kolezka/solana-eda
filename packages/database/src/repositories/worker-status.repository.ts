@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '../generated/client';
 
 export class WorkerStatusRepository {
   constructor(private prisma: PrismaClient) {}
@@ -77,7 +77,12 @@ export class WorkerStatusRepository {
 
     return await this.prisma.workerStatusRecord.update({
       where: { name },
-      data: { metrics: { ...(worker.metrics as Record<string, unknown>), ...metrics } as Prisma.InputJsonValue },
+      data: {
+        metrics: {
+          ...(worker.metrics as Record<string, unknown>),
+          ...metrics,
+        } as Prisma.InputJsonValue,
+      },
     });
   }
 

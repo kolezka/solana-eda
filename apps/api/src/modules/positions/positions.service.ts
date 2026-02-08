@@ -38,7 +38,7 @@ export class PositionsService {
   async closePosition(
     id: string,
     exitPrice: number,
-    reason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT'
+    reason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT',
   ) {
     return await this.positionRepo.closePosition(id, exitPrice, reason);
   }

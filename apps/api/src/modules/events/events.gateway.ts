@@ -76,7 +76,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     try {
       await Promise.race([
         this.redisSubscriber.connect(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis connect timeout')), 5000))
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Redis connect timeout')), 5000),
+        ),
       ]);
     } catch (err) {
       console.error('Redis subscriber connection failed or timed out:', err);

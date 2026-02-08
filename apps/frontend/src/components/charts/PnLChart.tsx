@@ -1,15 +1,24 @@
-'use client'
+'use client';
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 interface PnLDataPoint {
-  timestamp: string
-  pnl: number
+  timestamp: string;
+  pnl: number;
 }
 
 interface PnLChartProps {
-  data: PnLDataPoint[]
-  height?: number
+  data: PnLDataPoint[];
+  height?: number;
 }
 
 export function PnLChart({ data, height = 300 }: PnLChartProps) {
@@ -18,14 +27,14 @@ export function PnLChart({ data, height = 300 }: PnLChartProps) {
       <div className="flex items-center justify-center" style={{ height }}>
         <p className="text-sm text-muted-foreground">No P&L data available</p>
       </div>
-    )
+    );
   }
 
   // Format timestamp for display
   const formattedData = data.map((point) => ({
     ...point,
     time: new Date(point.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  }))
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -63,5 +72,5 @@ export function PnLChart({ data, height = 300 }: PnLChartProps) {
         />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }

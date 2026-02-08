@@ -29,11 +29,9 @@ export interface BurnInstructionData {
 
 export class TransactionParser {
   private readonly SYSTEM_PROGRAM_ID = new PublicKey('11111111111111111111111111111111');
-  private readonly TOKEN_PROGRAM_ID = new PublicKey(
-    'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
-  );
+  private readonly TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
   private readonly TOKEN_2022_PROGRAM_ID = new PublicKey(
-    'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'
+    'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
   );
 
   // Token Program instruction types
@@ -70,13 +68,14 @@ export class TransactionParser {
     }
 
     return transaction.message.instructions.some((instruction: any) => {
-      const programId = typeof instruction.programId === 'string'
-        ? instruction.programId
-        : instruction.programId?.toString?.();
+      const programId =
+        typeof instruction.programId === 'string'
+          ? instruction.programId
+          : instruction.programId?.toString?.();
 
       return (
         (programId === this.TOKEN_PROGRAM_ID.toString() ||
-         programId === this.TOKEN_2022_PROGRAM_ID.toString()) &&
+          programId === this.TOKEN_2022_PROGRAM_ID.toString()) &&
         this.isBurnInstruction(instruction)
       );
     });
@@ -96,8 +95,10 @@ export class TransactionParser {
       // For raw instruction data, first byte is instruction type
       const instructionType = Buffer.from(instruction.data, 'base64')[0];
 
-      return instructionType === this.TOKEN_INSTRUCTIONS.BURN ||
-             instructionType === this.TOKEN_INSTRUCTIONS.BURN2;
+      return (
+        instructionType === this.TOKEN_INSTRUCTIONS.BURN ||
+        instructionType === this.TOKEN_INSTRUCTIONS.BURN2
+      );
     } catch {
       return false;
     }
@@ -129,17 +130,19 @@ export class TransactionParser {
   /**
    * Parse from parsed transaction (preferred method)
    */
-  private parseParsedBurnInstruction(transaction: any, signature: string): ParsedBurnTransaction | null {
+  private parseParsedBurnInstruction(
+    transaction: any,
+    signature: string,
+  ): ParsedBurnTransaction | null {
     try {
-      const instructions = transaction.transaction?.message?.instructions ||
-                          transaction.message?.instructions;
+      const instructions =
+        transaction.transaction?.message?.instructions || transaction.message?.instructions;
 
       if (!instructions) return null;
 
       // Find burn instruction
       const burnInstruction = instructions.find((inst: any) => {
-        return inst.parsed?.type === 'burn' ||
-               inst.parsed?.type === 'burnChecked';
+        return inst.parsed?.type === 'burn' || inst.parsed?.type === 'burnChecked';
       });
 
       if (!burnInstruction?.parsed) return null;
@@ -190,19 +193,23 @@ export class TransactionParser {
   /**
    * Parse from raw instruction data (fallback method)
    */
-  private parseRawBurnInstruction(transaction: any, signature: string): ParsedBurnTransaction | null {
+  private parseRawBurnInstruction(
+    transaction: any,
+    signature: string,
+  ): ParsedBurnTransaction | null {
     try {
       const instructions = transaction.message?.instructions;
       if (!instructions) return null;
 
       const burnInst = instructions.find((inst: any) => {
-        const programId = typeof inst.programId === 'string'
-          ? inst.programId
-          : inst.programId?.toString?.();
+        const programId =
+          typeof inst.programId === 'string' ? inst.programId : inst.programId?.toString?.();
 
-        return (programId === this.TOKEN_PROGRAM_ID.toString() ||
-                programId === this.TOKEN_2022_PROGRAM_ID.toString()) &&
-               this.isBurnInstruction(inst);
+        return (
+          (programId === this.TOKEN_PROGRAM_ID.toString() ||
+            programId === this.TOKEN_2022_PROGRAM_ID.toString()) &&
+          this.isBurnInstruction(inst)
+        );
       });
 
       if (!burnInst) return null;
@@ -214,8 +221,10 @@ export class TransactionParser {
       const dataBuffer = Buffer.from(data, 'base64');
       const instructionType = dataBuffer[0];
 
-      if (instructionType !== this.TOKEN_INSTRUCTIONS.BURN &&
-          instructionType !== this.TOKEN_INSTRUCTIONS.BURN2) {
+      if (
+        instructionType !== this.TOKEN_INSTRUCTIONS.BURN &&
+        instructionType !== this.TOKEN_INSTRUCTIONS.BURN2
+      ) {
         return null;
       }
 
@@ -400,8 +409,7 @@ export class TransactionParser {
     try {
       const instruction = transaction.message.instructions.find(
         (inst: any) =>
-          inst.programId === this.SYSTEM_PROGRAM_ID.toString() &&
-          inst.parsed?.type === 'transfer'
+          inst.programId === this.SYSTEM_PROGRAM_ID.toString() && inst.parsed?.type === 'transfer',
       );
 
       if (!instruction) return null;

@@ -28,7 +28,10 @@ export interface HistogramMetric extends Metric {
 
 export class MetricsRegistry {
   private metrics = new Map<string, Metric>();
-  private histograms = new Map<string, { buckets: number[]; values: number[]; sum: number; count: number }>();
+  private histograms = new Map<
+    string,
+    { buckets: number[]; values: number[]; sum: number; count: number }
+  >();
 
   /**
    * Create or get a counter metric
@@ -77,7 +80,11 @@ export class MetricsRegistry {
   /**
    * Create or get a histogram metric
    */
-  histogram(name: string, help: string, buckets: number[] = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]): (value: number, labels?: Record<string, string>) => void {
+  histogram(
+    name: string,
+    help: string,
+    buckets: number[] = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+  ): (value: number, labels?: Record<string, string>) => void {
     if (!this.histograms.has(name)) {
       this.histograms.set(name, {
         buckets: [...buckets, Infinity],
@@ -158,7 +165,11 @@ export class MetricsRegistry {
       // Type comment
       lines.push(`# TYPE ${metric.name} ${metric.type}`);
       // Metric value
-      const labels = metric.labels ? `{${Object.entries(metric.labels).map(([k, v]) => `${k}="${v}"`).join(',')}}` : '';
+      const labels = metric.labels
+        ? `{${Object.entries(metric.labels)
+            .map(([k, v]) => `${k}="${v}"`)
+            .join(',')}}`
+        : '';
       lines.push(`${metric.name}${labels} ${metric.value}`);
     }
 
@@ -170,7 +181,7 @@ export class MetricsRegistry {
 
       // Bucket counts
       for (const le of histogram.buckets) {
-        const count = histogram.values.filter(v => v <= le).length;
+        const count = histogram.values.filter((v) => v <= le).length;
         const leLabel = le === Infinity ? '+Inf' : le.toString();
         lines.push(`${name}_bucket{le="${leLabel}"} ${count}`);
       }
@@ -199,7 +210,7 @@ export class MetricsRegistry {
       // Calculate bucket counts
       const buckets: HistogramBucket[] = [];
       for (const le of histogram.buckets) {
-        const count = histogram.values.filter(v => v <= le).length;
+        const count = histogram.values.filter((v) => v <= le).length;
         buckets.push({
           le: le === Infinity ? '+Inf' : le.toString(),
           value: count,
@@ -296,7 +307,10 @@ export const COMMON_METRICS = {
 export function initializeCommonMetrics(registry: MetricsRegistry): void {
   // Request metrics
   registry.counter(COMMON_METRICS.HTTP_REQUESTS_TOTAL, 'Total HTTP requests');
-  registry.histogram(COMMON_METRICS.HTTP_REQUEST_DURATION_MS, 'HTTP request duration in milliseconds');
+  registry.histogram(
+    COMMON_METRICS.HTTP_REQUEST_DURATION_MS,
+    'HTTP request duration in milliseconds',
+  );
   registry.gauge(COMMON_METRICS.HTTP_REQUESTS_IN_PROGRESS, 'HTTP requests currently in progress');
 
   // Worker metrics
@@ -313,17 +327,26 @@ export function initializeCommonMetrics(registry: MetricsRegistry): void {
   registry.gauge(COMMON_METRICS.PORTFOLIO_VALUE, 'Portfolio value in USD');
 
   // Database metrics
-  registry.histogram(COMMON_METRICS.DB_QUERY_DURATION_MS, 'Database query duration in milliseconds');
+  registry.histogram(
+    COMMON_METRICS.DB_QUERY_DURATION_MS,
+    'Database query duration in milliseconds',
+  );
   registry.gauge(COMMON_METRICS.DB_CONNECTIONS_ACTIVE, 'Active database connections');
   registry.gauge(COMMON_METRICS.DB_CONNECTIONS_IDLE, 'Idle database connections');
 
   // Solana RPC metrics
   registry.counter(COMMON_METRICS.SOLANA_RPC_REQUESTS_TOTAL, 'Total Solana RPC requests');
-  registry.histogram(COMMON_METRICS.SOLANA_RPC_REQUEST_DURATION_MS, 'Solana RPC request duration in milliseconds');
+  registry.histogram(
+    COMMON_METRICS.SOLANA_RPC_REQUEST_DURATION_MS,
+    'Solana RPC request duration in milliseconds',
+  );
   registry.counter(COMMON_METRICS.SOLANA_RPC_ERRORS_TOTAL, 'Total Solana RPC errors');
 
   // Redis metrics
   registry.counter(COMMON_METRICS.REDIS_COMMANDS_TOTAL, 'Total Redis commands');
-  registry.histogram(COMMON_METRICS.REDIS_COMMAND_DURATION_MS, 'Redis command duration in milliseconds');
+  registry.histogram(
+    COMMON_METRICS.REDIS_COMMAND_DURATION_MS,
+    'Redis command duration in milliseconds',
+  );
   registry.gauge(COMMON_METRICS.REDIS_CONNECTIONS_ACTIVE, 'Active Redis connections');
 }

@@ -63,8 +63,12 @@ const TOKEN_2022_PROGRAM_ID = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqC
  * DEX Program IDs
  */
 const ORCA_WHIRLPOOL_PROGRAM_ID = new PublicKey('whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc');
-const ORCA_CONCENTRATED_LIQUID_PROGRAM_ID = new PublicKey('camC3CCK9LiVwcfkBgKBfcX2GLjJaEW3hFRyWrJVKCK');
-const RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID = new PublicKey('9qvG1zUp8xF1Bi4m6VdJeG4dSfJZJJnkC3bceCXdRHg');
+const ORCA_CONCENTRATED_LIQUID_PROGRAM_ID = new PublicKey(
+  'camC3CCK9LiVwcfkBgKBfcX2GLjJaEW3hFRyWrJVKCK',
+);
+const RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID = new PublicKey(
+  '9qvG1zUp8xF1Bi4m6VdJeG4dSfJZJJnkC3bceCXdRHg',
+);
 const RAYDIUM_AMM_PROGRAM_ID = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
 const METEORA_DLMM_PROGRAM_ID = new PublicKey('LBUZKhRxPF3XUpBCjp4YzTKwgUurB1XTidjLGcnVxYg');
 const METEORA_STABLE_SWAP_PROGRAM_ID = new PublicKey('EppX3fRUMvDqtuCZjkeH3C1dj1GhVNgXVHBRpJbzVXS');
@@ -73,26 +77,29 @@ const METEORA_STABLE_SWAP_PROGRAM_ID = new PublicKey('EppX3fRUMvDqtuCZjkeH3C1dj1
  * Common token mint addresses with metadata
  */
 const TOKEN_METADATA: Record<string, TokenMetadata> = {
-  'So11111111111111111111111111111111111111112': {
+  So11111111111111111111111111111111111111112: {
     address: 'So11111111111111111111111111111111111111112',
     symbol: 'SOL',
     name: 'Wrapped SOL',
     decimals: 9,
-    logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+    logoURI:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
   },
-  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': {
+  EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: {
     address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     symbol: 'USDC',
     name: 'USD Coin',
     decimals: 6,
-    logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+    logoURI:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
   },
-  'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB': {
+  Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB: {
     address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
     symbol: 'USDT',
     name: 'Tether USD',
     decimals: 6,
-    logoURI: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
+    logoURI:
+      'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
   },
 };
 
@@ -107,16 +114,22 @@ export class PoolParser {
   detectDEXType(owner: PublicKey): DEXType {
     const ownerStr = owner.toString();
 
-    if (ownerStr === ORCA_WHIRLPOOL_PROGRAM_ID.toString() ||
-        ownerStr === ORCA_CONCENTRATED_LIQUID_PROGRAM_ID.toString()) {
+    if (
+      ownerStr === ORCA_WHIRLPOOL_PROGRAM_ID.toString() ||
+      ownerStr === ORCA_CONCENTRATED_LIQUID_PROGRAM_ID.toString()
+    ) {
       return DEXType.ORCA;
     }
-    if (ownerStr === RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID.toString() ||
-        ownerStr === RAYDIUM_AMM_PROGRAM_ID.toString()) {
+    if (
+      ownerStr === RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID.toString() ||
+      ownerStr === RAYDIUM_AMM_PROGRAM_ID.toString()
+    ) {
       return DEXType.RAYDIUM;
     }
-    if (ownerStr === METEORA_DLMM_PROGRAM_ID.toString() ||
-        ownerStr === METEORA_STABLE_SWAP_PROGRAM_ID.toString()) {
+    if (
+      ownerStr === METEORA_DLMM_PROGRAM_ID.toString() ||
+      ownerStr === METEORA_STABLE_SWAP_PROGRAM_ID.toString()
+    ) {
       return DEXType.METEORA;
     }
 
@@ -150,7 +163,10 @@ export class PoolParser {
    * Parse Orca Whirlpool account data
    * Layout: https://github.com/orca-so/typescript-sdk/blob/master/src/plugins/whirlpool/whirlpool.ts
    */
-  private parseOrcaPool(poolAddress: PublicKey, accountInfo: AccountInfo<Buffer>): ParsedPoolData | null {
+  private parseOrcaPool(
+    poolAddress: PublicKey,
+    accountInfo: AccountInfo<Buffer>,
+  ): ParsedPoolData | null {
     try {
       const data = accountInfo.data;
 
@@ -182,8 +198,12 @@ export class PoolParser {
       const LIQUIDITY_OFFSET = 97;
 
       // Extract token mints
-      const tokenAAddress = new PublicKey(data.slice(TOKEN_A_OFFSET, TOKEN_A_OFFSET + 32)).toString();
-      const tokenBAddress = new PublicKey(data.slice(TOKEN_B_OFFSET, TOKEN_B_OFFSET + 32)).toString();
+      const tokenAAddress = new PublicKey(
+        data.slice(TOKEN_A_OFFSET, TOKEN_A_OFFSET + 32),
+      ).toString();
+      const tokenBAddress = new PublicKey(
+        data.slice(TOKEN_B_OFFSET, TOKEN_B_OFFSET + 32),
+      ).toString();
 
       // Get token metadata
       const tokenA = this.getTokenMetadata(tokenAAddress);
@@ -210,7 +230,7 @@ export class PoolParser {
       const adjustedPrice = price * Math.pow(10, tokenA.decimals - tokenB.decimals);
 
       // Calculate TVL (simplified - would need vault balances for accurate TVL)
-      const tvl = Number(liquidity) / Math.pow(2, 64) * 2 * Math.sqrt(adjustedPrice);
+      const tvl = (Number(liquidity) / Math.pow(2, 64)) * 2 * Math.sqrt(adjustedPrice);
 
       return {
         address: poolAddress.toString(),
@@ -234,7 +254,10 @@ export class PoolParser {
    * Parse Raydium Liquidity Pool V4 account data
    * Layout: https://github.com/raydium-io/raydium-sdk/blob/master/src/lp/amm.ts
    */
-  private parseRaydiumPool(poolAddress: PublicKey, accountInfo: AccountInfo<Buffer>): ParsedPoolData | null {
+  private parseRaydiumPool(
+    poolAddress: PublicKey,
+    accountInfo: AccountInfo<Buffer>,
+  ): ParsedPoolData | null {
     try {
       const data = accountInfo.data;
 
@@ -285,8 +308,12 @@ export class PoolParser {
       const QUOTE_VAULT_OFFSET = 205;
 
       // Extract token mints
-      const baseMint = new PublicKey(data.slice(BASE_MINT_OFFSET, BASE_MINT_OFFSET + 32)).toString();
-      const quoteMint = new PublicKey(data.slice(QUOTE_MINT_OFFSET, QUOTE_MINT_OFFSET + 32)).toString();
+      const baseMint = new PublicKey(
+        data.slice(BASE_MINT_OFFSET, BASE_MINT_OFFSET + 32),
+      ).toString();
+      const quoteMint = new PublicKey(
+        data.slice(QUOTE_MINT_OFFSET, QUOTE_MINT_OFFSET + 32),
+      ).toString();
 
       const tokenA = this.getTokenMetadata(baseMint);
       const tokenB = this.getTokenMetadata(quoteMint);
@@ -319,7 +346,10 @@ export class PoolParser {
   /**
    * Parse Meteora DLMM pool account data
    */
-  private parseMeteoraPool(poolAddress: PublicKey, accountInfo: AccountInfo<Buffer>): ParsedPoolData | null {
+  private parseMeteoraPool(
+    poolAddress: PublicKey,
+    accountInfo: AccountInfo<Buffer>,
+  ): ParsedPoolData | null {
     try {
       const data = accountInfo.data;
 
@@ -332,8 +362,12 @@ export class PoolParser {
       const FEE_RATE_OFFSET = TOKEN_B_OFFSET + 32;
 
       // Extract token mints
-      const tokenAAddress = new PublicKey(data.slice(TOKEN_A_OFFSET, TOKEN_A_OFFSET + 32)).toString();
-      const tokenBAddress = new PublicKey(data.slice(TOKEN_B_OFFSET, TOKEN_B_OFFSET + 32)).toString();
+      const tokenAAddress = new PublicKey(
+        data.slice(TOKEN_A_OFFSET, TOKEN_A_OFFSET + 32),
+      ).toString();
+      const tokenBAddress = new PublicKey(
+        data.slice(TOKEN_B_OFFSET, TOKEN_B_OFFSET + 32),
+      ).toString();
 
       const tokenA = this.getTokenMetadata(tokenAAddress);
       const tokenB = this.getTokenMetadata(tokenBAddress);
@@ -392,13 +426,11 @@ export class PoolParser {
    * Calculate pool state change percentage
    */
   calculatePoolChange(oldData: ParsedPoolData, newData: ParsedPoolData): PoolStateChange {
-    const tvlChangePercent = oldData.tvl > 0
-      ? ((newData.tvl - oldData.tvl) / oldData.tvl) * 100
-      : 0;
+    const tvlChangePercent =
+      oldData.tvl > 0 ? ((newData.tvl - oldData.tvl) / oldData.tvl) * 100 : 0;
 
-    const priceChangePercent = oldData.price > 0
-      ? ((newData.price - oldData.price) / oldData.price) * 100
-      : 0;
+    const priceChangePercent =
+      oldData.price > 0 ? ((newData.price - oldData.price) / oldData.price) * 100 : 0;
 
     return {
       address: newData.address,
@@ -427,7 +459,7 @@ export class PoolParser {
     reserveA: bigint,
     reserveB: bigint,
     decimalsA: number,
-    decimalsB: number
+    decimalsB: number,
   ): number {
     const adjustedReserveA = Number(reserveA) / Math.pow(10, decimalsA);
     const adjustedReserveB = Number(reserveB) / Math.pow(10, decimalsB);
@@ -446,14 +478,14 @@ export class PoolParser {
     decimalsA: number,
     decimalsB: number,
     priceA: number = 0,
-    priceB: number = 0
+    priceB: number = 0,
   ): Promise<number> {
     const adjustedReserveA = Number(reserveA) / Math.pow(10, decimalsA);
     const adjustedReserveB = Number(reserveB) / Math.pow(10, decimalsB);
 
     // If one token is a stablecoin, use it as price reference
     if (priceA > 0 && priceB > 0) {
-      return (adjustedReserveA * priceA) + (adjustedReserveB * priceB);
+      return adjustedReserveA * priceA + adjustedReserveB * priceB;
     }
 
     // Otherwise, return token A amount in token B units

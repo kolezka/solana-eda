@@ -1,6 +1,5 @@
 {
   "name": "@solana-eda/database",
-  "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -14,7 +13,6 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "jest",
     "lint": "eslint src --ext .ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
@@ -22,11 +20,12 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^5.9.1"
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "prisma": "^5.9.1",
+    "prisma": "^7.3.0",
     "typescript": "^5.3.3"
   }
 }

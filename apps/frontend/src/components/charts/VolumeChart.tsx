@@ -1,15 +1,24 @@
-'use client'
+'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
 
 interface VolumeDataPoint {
-  date: string
-  volume: number
+  date: string;
+  volume: number;
 }
 
 interface VolumeChartProps {
-  data: VolumeDataPoint[]
-  height?: number
+  data: VolumeDataPoint[];
+  height?: number;
 }
 
 const COLORS = [
@@ -18,7 +27,7 @@ const COLORS = [
   'hsl(var(--primary) / 0.6)',
   'hsl(var(--primary) / 0.4)',
   'hsl(var(--primary) / 0.2)',
-]
+];
 
 export function VolumeChart({ data, height = 300 }: VolumeChartProps) {
   if (data.length === 0) {
@@ -26,7 +35,7 @@ export function VolumeChart({ data, height = 300 }: VolumeChartProps) {
       <div className="flex items-center justify-center" style={{ height }}>
         <p className="text-sm text-muted-foreground">No volume data available</p>
       </div>
-    )
+    );
   }
 
   // Format date for display
@@ -34,7 +43,7 @@ export function VolumeChart({ data, height = 300 }: VolumeChartProps) {
     ...point,
     date: new Date(point.date).toLocaleDateString([], { month: 'short', day: 'numeric' }),
     color: COLORS[index % COLORS.length],
-  }))
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -68,5 +77,5 @@ export function VolumeChart({ data, height = 300 }: VolumeChartProps) {
         </Bar>
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }

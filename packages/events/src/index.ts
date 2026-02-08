@@ -1,6 +1,14 @@
 import { z } from 'zod';
-import type { DEXQuoteComparisonEvent, BurnDetectedEvent, LiquidityChangedEvent, TradeExecutedEvent, PositionOpenedEvent, PositionClosedEvent, WorkerStatusEvent, PriceUpdateEvent } from '@solana-eda/types';
-import Redis from 'ioredis';
+import type {
+  DEXQuoteComparisonEvent,
+  BurnDetectedEvent,
+  LiquidityChangedEvent,
+  TradeExecutedEvent,
+  PositionOpenedEvent,
+  PositionClosedEvent,
+  WorkerStatusEvent,
+} from '@solana-eda/types';
+import { createClient } from 'ioredis';
 
 // Redis channel names
 export const CHANNELS = {
@@ -9,7 +17,6 @@ export const CHANNELS = {
   EVENTS_TRADES: 'events:trades',
   EVENTS_POSITIONS: 'events:positions',
   EVENTS_DEX_COMPARISON: 'events:dex-comparison',
-  EVENTS_PRICE: 'events:price',
   WORKERS_STATUS: 'workers:status',
   COMMANDS_TRADING: 'commands:trading',
   COMMANDS_WORKERS: 'commands:workers',
@@ -122,7 +129,7 @@ export const DEXQuoteComparisonEventSchema = z.object({
         dex: z.string(),
         outAmount: z.string(),
         priceImpactPct: z.number(),
-      })
+      }),
     ),
     selectedDEX: z.string(),
     bestQuote: z.object({
@@ -130,27 +137,6 @@ export const DEXQuoteComparisonEventSchema = z.object({
       outAmount: z.string(),
       priceImpactPct: z.number(),
     }),
-  }),
-});
-
-export const PriceUpdateEventSchema = z.object({
-  type: z.literal('PRICE_UPDATE'),
-  timestamp: z.string(),
-  id: z.string(),
-  data: z.object({
-    token: z.string(),
-    price: z.string(),
-    source: z.string(),
-    confidence: z.number(),
-    volume24h: z.string().optional(),
-    priceChange24h: z.number().optional(),
-    sources: z.array(
-      z.object({
-        dex: z.string(),
-        price: z.string(),
-        volume24h: z.string().optional(),
-      })
-    ),
   }),
 });
 
@@ -163,56 +149,50 @@ export const EventSchema = z.discriminatedUnion('type', [
   PositionClosedEventSchema,
   WorkerStatusEventSchema,
   DEXQuoteComparisonEventSchema,
-  PriceUpdateEventSchema,
 ]);
 
-// Type inference from schemas
+// Event type inference for type safety
 export type EventUnion = z.infer<typeof EventSchema>;
+export type AnyEvent = EventUnion;
 
 // Type guards
-export function isBurnEvent(event: EventUnion): event is BurnDetectedEvent {
+export function isBurnEvent(event: AnyEvent): event is BurnDetectedEvent {
   return event.type === 'BURN_DETECTED';
 }
 
-export function isLiquidityEvent(event: EventUnion): event is LiquidityChangedEvent {
+export function isLiquidityEvent(event: AnyEvent): event is LiquidityChangedEvent {
   return event.type === 'LIQUIDITY_CHANGED';
 }
 
-export function isTradeEvent(event: EventUnion): event is TradeExecutedEvent {
+export function isTradeEvent(event: AnyEvent): event is TradeExecutedEvent {
   return event.type === 'TRADE_EXECUTED';
 }
 
-export function isPositionOpenedEvent(event: EventUnion): event is PositionOpenedEvent {
+export function isPositionOpenedEvent(event: AnyEvent): event is PositionOpenedEvent {
   return event.type === 'POSITION_OPENED';
 }
 
-export function isPositionClosedEvent(event: EventUnion): event is PositionClosedEvent {
+export function isPositionClosedEvent(event: AnyEvent): event is PositionClosedEvent {
   return event.type === 'POSITION_CLOSED';
 }
 
-export function isWorkerStatusEvent(event: EventUnion): event is WorkerStatusEvent {
+export function isWorkerStatusEvent(event: AnyEvent): event is WorkerStatusEvent {
   return event.type === 'WORKER_STATUS';
 }
 
-export function isDEXQuoteComparisonEvent(event: EventUnion): event is DEXQuoteComparisonEvent {
+export function isDEXQuoteComparisonEvent(event: AnyEvent): event is DEXQuoteComparisonEvent {
   return event.type === 'DEX_QUOTE_COMPARISON';
-}
-
-export function isPriceUpdateEvent(event: EventUnion): event is PriceUpdateEvent {
-  return event.type === 'PRICE_UPDATE';
 }
 
 /**
  * Validate a Solana event
  */
-export function validateEvent(data: unknown): EventUnion {
+export function validateEvent(data: unknown): AnyEvent {
   return EventSchema.parse(data);
 }
 
-/**
- * Create a burn detected event
- */
-export function createBurnEvent(data: z.infer<typeof BurnEventSchema>['data']): EventUnion {
+// Event factory functions
+export function createBurnEvent(data: z.infer<typeof BurnEventSchema>['data']): AnyEvent {
   return {
     type: 'BURN_DETECTED',
     timestamp: new Date().toISOString(),
@@ -221,10 +201,7 @@ export function createBurnEvent(data: z.infer<typeof BurnEventSchema>['data']): 
   };
 }
 
-/**
- * Create a liquidity changed event
- */
-export function createLiquidityEvent(data: z.infer<typeof LiquidityEventSchema>['data']): EventUnion {
+export function createLiquidityEvent(data: z.infer<typeof LiquidityEventSchema>['data']): AnyEvent {
   return {
     type: 'LIQUIDITY_CHANGED',
     timestamp: new Date().toISOString(),
@@ -233,10 +210,7 @@ export function createLiquidityEvent(data: z.infer<typeof LiquidityEventSchema>[
   };
 }
 
-/**
- * Create a trade executed event
- */
-export function createTradeEvent(data: z.infer<typeof TradeEventSchema>['data']): EventUnion {
+export function createTradeEvent(data: z.infer<typeof TradeEventSchema>['data']): AnyEvent {
   return {
     type: 'TRADE_EXECUTED',
     timestamp: new Date().toISOString(),
@@ -245,10 +219,9 @@ export function createTradeEvent(data: z.infer<typeof TradeEventSchema>['data'])
   };
 }
 
-/**
- * Create a position opened event
- */
-export function createPositionOpenedEvent(data: z.infer<typeof PositionOpenedEventSchema>['data']): EventUnion {
+export function createPositionOpenedEvent(
+  data: z.infer<typeof PositionOpenedEventSchema>['data'],
+): AnyEvent {
   return {
     type: 'POSITION_OPENED',
     timestamp: new Date().toISOString(),
@@ -257,10 +230,9 @@ export function createPositionOpenedEvent(data: z.infer<typeof PositionOpenedEve
   };
 }
 
-/**
- * Create a position closed event
- */
-export function createPositionClosedEvent(data: z.infer<typeof PositionClosedEventSchema>['data']): EventUnion {
+export function createPositionClosedEvent(
+  data: z.infer<typeof PositionClosedEventSchema>['data'],
+): AnyEvent {
   return {
     type: 'POSITION_CLOSED',
     timestamp: new Date().toISOString(),
@@ -269,10 +241,9 @@ export function createPositionClosedEvent(data: z.infer<typeof PositionClosedEve
   };
 }
 
-/**
- * Create a worker status event
- */
-export function createWorkerStatusEvent(data: z.infer<typeof WorkerStatusEventSchema>['data']): EventUnion {
+export function createWorkerStatusEvent(
+  data: z.infer<typeof WorkerStatusEventSchema>['data'],
+): AnyEvent {
   return {
     type: 'WORKER_STATUS',
     timestamp: new Date().toISOString(),
@@ -281,10 +252,9 @@ export function createWorkerStatusEvent(data: z.infer<typeof WorkerStatusEventSc
   };
 }
 
-/**
- * Create a DEX quote comparison event
- */
-export function createDEXQuoteComparisonEvent(data: z.infer<typeof DEXQuoteComparisonEventSchema>['data']): EventUnion {
+export function createDEXQuoteComparisonEvent(
+  data: z.infer<typeof DEXQuoteComparisonEventSchema>['data'],
+): AnyEvent {
   return {
     type: 'DEX_QUOTE_COMPARISON',
     timestamp: new Date().toISOString(),
@@ -293,16 +263,4 @@ export function createDEXQuoteComparisonEvent(data: z.infer<typeof DEXQuoteCompa
   };
 }
 
-/**
- * Create a price update event
- */
-export function createPriceUpdateEvent(data: z.infer<typeof PriceUpdateEventSchema>['data']): EventUnion {
-  return {
-    type: 'PRICE_UPDATE',
-    timestamp: new Date().toISOString(),
-    id: `price-update-${Date.now()}`,
-    data,
-  };
-}
-
-export { Redis as createClient };
+export { createClient };

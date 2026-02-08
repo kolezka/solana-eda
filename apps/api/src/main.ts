@@ -16,16 +16,20 @@ async function bootstrap() {
   console.log('CORS enabled');
 
   // Enable validation
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
   console.log('ValidationPipe configured');
 
   // Configure Swagger/OpenAPI documentation
   const config = new DocumentBuilder()
     .setTitle('Solana EDA API')
-    .setDescription('Event-Driven Architecture API for Solana blockchain monitoring, liquidity tracking, and automated trading.')
+    .setDescription(
+      'Event-Driven Architecture API for Solana blockchain monitoring, liquidity tracking, and automated trading.',
+    )
     .setVersion('1.0')
     .addTag('events', 'Real-time events and event subscriptions')
     .addTag('workers', 'Worker status and management')

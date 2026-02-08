@@ -1,10 +1,5 @@
 import { Connection, Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
-import type {
-  QuoteResponse,
-  QuoteGetRequest,
-  SwapRequest,
-  SwapResponse
-} from '@jup-ag/api';
+import type { QuoteResponse, QuoteGetRequest, SwapRequest, SwapResponse } from '@jup-ag/api';
 import type { DEXClient, DEXQuote, DEXSwapResult } from './types';
 
 /**
@@ -19,16 +14,12 @@ export class JupiterClient implements DEXClient {
   constructor(
     private connection: Connection,
     private wallet: Keypair,
-    apiUrl: string = 'https://quote-api.jup.ag/v6'
+    apiUrl: string = 'https://quote-api.jup.ag/v6',
   ) {
     this.apiUrl = apiUrl;
   }
 
-  async getQuote(
-    inputMint: string,
-    outputMint: string,
-    amount: string
-  ): Promise<DEXQuote> {
+  async getQuote(inputMint: string, outputMint: string, amount: string): Promise<DEXQuote> {
     try {
       // Use fetch to call Jupiter's quote API
       const params = new URLSearchParams({
@@ -46,15 +37,16 @@ export class JupiterClient implements DEXClient {
         throw new Error(`Jupiter quote API error: ${response.statusText}`);
       }
 
-      const quoteResponse = await response.json() as QuoteResponse;
+      const quoteResponse = (await response.json()) as QuoteResponse;
 
       // Convert route plan to our format
-      const routePlan = quoteResponse.routePlan?.map(step => ({
-        dex: step.swapInfo?.label || 'Unknown',
-        inputMint: step.swapInfo?.inputMint || inputMint,
-        outputMint: step.swapInfo?.outputMint || outputMint,
-        percent: step.percent || 100,
-      })) || [];
+      const routePlan =
+        quoteResponse.routePlan?.map((step) => ({
+          dex: step.swapInfo?.label || 'Unknown',
+          inputMint: step.swapInfo?.inputMint || inputMint,
+          outputMint: step.swapInfo?.outputMint || outputMint,
+          percent: step.percent || 100,
+        })) || [];
 
       const priceImpact = quoteResponse.priceImpactPct;
       const priceImpactPct = typeof priceImpact === 'number' ? priceImpact / 100 : 0;
@@ -73,10 +65,7 @@ export class JupiterClient implements DEXClient {
     }
   }
 
-  async executeSwap(
-    quote: DEXQuote,
-    maxSlippageBps: number = 50
-  ): Promise<DEXSwapResult> {
+  async executeSwap(quote: DEXQuote, maxSlippageBps: number = 50): Promise<DEXSwapResult> {
     try {
       const swapRequest: SwapRequest = {
         quoteResponse: {
@@ -88,21 +77,22 @@ export class JupiterClient implements DEXClient {
           swapMode: 'ExactIn',
           slippageBps: maxSlippageBps,
           priceImpactPct: String(quote.priceImpactPct * 100),
-          routePlan: quote.routePlan?.map(step => ({
-            swapInfo: {
-              ammKey: step.dex,
-              label: step.dex,
-              inputMint: step.inputMint,
-              outputMint: step.outputMint,
-              notEnoughLiquidity: false,
-              inAmount: quote.inAmount,
-              outAmount: quote.outAmount,
-              feeAmount: '0',
-              feeMint: quote.inputMint,
-              priceImpactPct: String(quote.priceImpactPct * 100),
-            },
-            percent: step.percent,
-          })) || [],
+          routePlan:
+            quote.routePlan?.map((step) => ({
+              swapInfo: {
+                ammKey: step.dex,
+                label: step.dex,
+                inputMint: step.inputMint,
+                outputMint: step.outputMint,
+                notEnoughLiquidity: false,
+                inAmount: quote.inAmount,
+                outAmount: quote.outAmount,
+                feeAmount: '0',
+                feeMint: quote.inputMint,
+                priceImpactPct: String(quote.priceImpactPct * 100),
+              },
+              percent: step.percent,
+            })) || [],
         },
         userPublicKey: this.wallet.publicKey.toBase58(),
         wrapAndUnwrapSol: true,
@@ -122,7 +112,11 @@ export class JupiterClient implements DEXClient {
         throw new Error(`Jupiter swap API error: ${response.statusText}`);
       }
 
-      const swapResponse = await response.json() as SwapResponse & { success?: boolean; error?: string; swapTransaction?: string };
+      const swapResponse = (await response.json()) as SwapResponse & {
+        success?: boolean;
+        error?: string;
+        swapTransaction?: string;
+      };
 
       if (swapResponse.success === false) {
         throw new Error(`Swap failed: ${swapResponse.error || 'Unknown error'}`);

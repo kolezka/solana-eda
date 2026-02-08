@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
+import { PrismaClient } from '../generated/client';
 export class LiquidityPoolRepository {
   constructor(private prisma: PrismaClient) {}
 

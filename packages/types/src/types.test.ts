@@ -30,8 +30,8 @@ describe('Types', () => {
         enabled: true,
         maxSlippage: 0.03,
         maxPositions: 5,
-        stopLossPercent: 0.10,
-        takeProfitPercent: 0.50,
+        stopLossPercent: 0.1,
+        takeProfitPercent: 0.5,
         minBurnAmount: 1000,
         maxPositionSize: 0.02,
       };

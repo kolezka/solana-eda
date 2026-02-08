@@ -99,8 +99,8 @@ export class Logger {
     if (this.options.prettyPrint) {
       const colorCode = {
         [LogLevel.DEBUG]: '\x1b[36m', // Cyan
-        [LogLevel.INFO]: '\x1b[32m',  // Green
-        [LogLevel.WARN]: '\x1b[33m',  // Yellow
+        [LogLevel.INFO]: '\x1b[32m', // Green
+        [LogLevel.WARN]: '\x1b[33m', // Yellow
         [LogLevel.ERROR]: '\x1b[31m', // Red
       };
       const reset = '\x1b[0m';
@@ -109,7 +109,9 @@ export class Logger {
       const timestamp = this.options.includeTimestamp ? entry.timestamp : '';
       const context = entry.context ? `[${entry.context}]` : '';
       const data = entry.data ? `\n  ${JSON.stringify(entry.data, null, 2)}` : '';
-      const error = entry.error ? `\n  ${entry.error.message}${entry.error.stack ? '\n' + entry.error.stack : ''}` : '';
+      const error = entry.error
+        ? `\n  ${entry.error.message}${entry.error.stack ? '\n' + entry.error.stack : ''}`
+        : '';
 
       return `${colorCode[entry.level]}[${levelName}]${reset} ${timestamp} ${context} ${entry.message}${data}${error}`;
     }
@@ -123,7 +125,12 @@ export class Logger {
   /**
    * Create log entry
    */
-  private log(level: LogLevel, message: string, data?: Record<string, unknown>, error?: Error): void {
+  private log(
+    level: LogLevel,
+    message: string,
+    data?: Record<string, unknown>,
+    error?: Error,
+  ): void {
     if (!this.isEnabled(level)) return;
 
     const entry: LogEntry = {
@@ -132,12 +139,14 @@ export class Logger {
       message,
       context: this.options.context,
       data: data ? this.redact(data) : undefined,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        code: (error as any).code,
-      } : undefined,
+      error: error
+        ? {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: (error as any).code,
+          }
+        : undefined,
     };
 
     const formatted = this.format(entry);

@@ -1,35 +1,35 @@
-'use client'
+'use client';
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface WinRateChartProps {
-  winningTrades: number
-  losingTrades: number
-  height?: number
+  winningTrades: number;
+  losingTrades: number;
+  height?: number;
 }
 
 const COLORS = {
   win: 'hsl(142, 76%, 36%)',
   loss: 'hsl(0, 84%, 60%)',
-}
+};
 
 export function WinRateChart({ winningTrades, losingTrades, height = 300 }: WinRateChartProps) {
-  const totalTrades = winningTrades + losingTrades
+  const totalTrades = winningTrades + losingTrades;
 
   if (totalTrades === 0) {
     return (
       <div className="flex items-center justify-center" style={{ height }}>
         <p className="text-sm text-muted-foreground">No trade data available</p>
       </div>
-    )
+    );
   }
 
-  const winRate = (winningTrades / totalTrades) * 100
+  const winRate = (winningTrades / totalTrades) * 100;
 
   const data = [
     { name: 'Winning Trades', value: winningTrades, color: COLORS.win },
     { name: 'Losing Trades', value: losingTrades, color: COLORS.loss },
-  ]
+  ];
 
   return (
     <div className="flex items-center justify-between">
@@ -76,5 +76,5 @@ export function WinRateChart({ winningTrades, losingTrades, height = 300 }: WinR
         </div>
       </div>
     </div>
-  )
+  );
 }

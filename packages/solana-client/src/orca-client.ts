@@ -35,7 +35,7 @@ export class OrcaClient implements DEXClient {
   constructor(
     private connection: Connection,
     private wallet: Keypair,
-    apiUrl: string = 'https://quote-api.jup.ag/v6'
+    apiUrl: string = 'https://quote-api.jup.ag/v6',
   ) {
     this.apiUrl = apiUrl;
   }
@@ -43,11 +43,7 @@ export class OrcaClient implements DEXClient {
   /**
    * Get a quote using Jupiter API with Orca-only routing
    */
-  async getQuote(
-    inputMint: string,
-    outputMint: string,
-    amount: string
-  ): Promise<DEXQuote> {
+  async getQuote(inputMint: string, outputMint: string, amount: string): Promise<DEXQuote> {
     try {
       // Use Jupiter API to get quotes, filtered to Orca pools only
       const params = new URLSearchParams({
@@ -67,11 +63,11 @@ export class OrcaClient implements DEXClient {
         throw new Error(`Quote API error: ${response.statusText}`);
       }
 
-      const quoteResponse = await response.json() as QuoteResponse;
+      const quoteResponse = (await response.json()) as QuoteResponse;
 
       // Check if route uses Orca
       const hasOrcaRoute = quoteResponse.routePlan?.some((step) =>
-        step.swapInfo?.label?.toLowerCase().includes('orca')
+        step.swapInfo?.label?.toLowerCase().includes('orca'),
       );
 
       if (!hasOrcaRoute) {
@@ -87,12 +83,14 @@ export class OrcaClient implements DEXClient {
         inAmount: amount,
         outAmount: quoteResponse.outAmount,
         priceImpactPct,
-        routePlan: [{
-          dex: 'Orca',
-          inputMint,
-          outputMint,
-          percent: 100,
-        }],
+        routePlan: [
+          {
+            dex: 'Orca',
+            inputMint,
+            outputMint,
+            percent: 100,
+          },
+        ],
       };
     } catch (error) {
       console.error('[OrcaClient] Error getting quote:', error);
@@ -103,10 +101,7 @@ export class OrcaClient implements DEXClient {
   /**
    * Execute a swap using Jupiter API (which will route through Orca if available)
    */
-  async executeSwap(
-    quote: DEXQuote,
-    maxSlippageBps: number = 50
-  ): Promise<DEXSwapResult> {
+  async executeSwap(quote: DEXQuote, maxSlippageBps: number = 50): Promise<DEXSwapResult> {
     try {
       const swapRequest = {
         quoteResponse: {
@@ -136,7 +131,7 @@ export class OrcaClient implements DEXClient {
         throw new Error(`Swap API error: ${response.statusText}`);
       }
 
-      const swapResponse = await response.json() as SwapResponse;
+      const swapResponse = (await response.json()) as SwapResponse;
 
       if (swapResponse.success === false) {
         throw new Error(`Swap failed: ${swapResponse.error || 'Unknown error'}`);

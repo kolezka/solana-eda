@@ -1,13 +1,7 @@
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import {
-  LayoutDashboard,
-  Activity,
-  Users,
-  DollarSign,
-  Settings,
-} from 'lucide-react'
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { LayoutDashboard, Activity, Users, DollarSign, Settings } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -15,10 +9,10 @@ const navigation = [
   { name: 'Positions', href: '/positions', icon: DollarSign },
   { name: 'Workers', href: '/workers', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
-]
+];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,8 +26,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <nav className="space-y-2">
             {navigation.map((item) => {
-              const isActive = pathname === item.href
-              const Icon = item.icon
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
 
               return (
                 <Link
@@ -43,13 +37,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                   )}
                 >
                   <Icon className="h-4 w-4" />
                   {item.name}
                 </Link>
-              )
+              );
             })}
           </nav>
         </aside>
@@ -58,5 +52,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }

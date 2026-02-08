@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { DollarSign, TrendingUp, Activity, Target } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { useEffect, useState } from 'react';
+import { DollarSign, TrendingUp, Activity, Target } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
 export default function TradingStats() {
   const [stats, setStats] = useState({
@@ -10,33 +10,33 @@ export default function TradingStats() {
     winRate: 0,
     tradesToday: 0,
     totalPositions: 0,
-  })
+  });
 
   useEffect(() => {
-    fetchStats()
-    const interval = setInterval(fetchStats, 10000) // Refresh every 10 seconds
-    return () => clearInterval(interval)
-  }, [])
+    fetchStats();
+    const interval = setInterval(fetchStats, 10000); // Refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   async function fetchStats() {
     try {
-      const api_url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const api_url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const [volumeRes, posRes] = await Promise.all([
         fetch(`${api_url}/trading/stats/volume?days=1`),
         fetch(`${api_url}/positions`),
-      ])
+      ]);
 
-      const volumeData = await volumeRes.json()
-      const positionsData = await posRes.json()
+      const volumeData = await volumeRes.json();
+      const positionsData = await posRes.json();
 
       setStats({
         totalVolume: volumeData.totalVolume || 0,
         winRate: volumeData.winRate || 0,
         tradesToday: volumeData.tradeCount || 0,
         totalPositions: positionsData.length || 0,
-      })
+      });
     } catch (error) {
-      console.error('Error fetching stats:', error)
+      console.error('Error fetching stats:', error);
     }
   }
 
@@ -65,12 +65,12 @@ export default function TradingStats() {
       icon: Target,
       color: 'text-orange-500',
     },
-  ]
+  ];
 
   return (
     <>
       {statCards.map((stat) => {
-        const Icon = stat.icon
+        const Icon = stat.icon;
         return (
           <div key={stat.title} className="rounded-lg border bg-card p-6">
             <div className="flex items-center justify-between">
@@ -81,8 +81,8 @@ export default function TradingStats() {
               <Icon className={`h-8 w-8 ${stat.color}`} />
             </div>
           </div>
-        )
+        );
       })}
     </>
-  )
+  );
 }

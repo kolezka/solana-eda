@@ -1,16 +1,24 @@
-'use client'
+'use client';
 
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface BurnTrendDataPoint {
-  timestamp: string
-  burns: number
-  amount: number
+  timestamp: string;
+  burns: number;
+  amount: number;
 }
 
 interface BurnTrendChartProps {
-  data: BurnTrendDataPoint[]
-  height?: number
+  data: BurnTrendDataPoint[];
+  height?: number;
 }
 
 export function BurnTrendChart({ data, height = 300 }: BurnTrendChartProps) {
@@ -19,14 +27,14 @@ export function BurnTrendChart({ data, height = 300 }: BurnTrendChartProps) {
       <div className="flex items-center justify-center" style={{ height }}>
         <p className="text-sm text-muted-foreground">No burn trend data available</p>
       </div>
-    )
+    );
   }
 
   // Format timestamp for display
   const formattedData = data.map((point) => ({
     ...point,
     time: new Date(point.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  }))
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -82,5 +90,5 @@ export function BurnTrendChart({ data, height = 300 }: BurnTrendChartProps) {
         />
       </AreaChart>
     </ResponsiveContainer>
-  )
+  );
 }

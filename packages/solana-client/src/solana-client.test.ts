@@ -11,7 +11,7 @@ describe('Solana Client', () => {
     beforeEach(() => {
       connection = new SolanaConnectionManager(
         'https://api.devnet.solana.com',
-        'wss://api.devnet.solana.com'
+        'wss://api.devnet.solana.com',
       );
     });
 

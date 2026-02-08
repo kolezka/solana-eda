@@ -1,1 +1,1 @@
-export { usePolling, useSocket, useEvents } from './use-api'
+export { usePolling, useSocket, useEvents } from './use-api';

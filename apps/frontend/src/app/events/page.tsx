@@ -1,117 +1,123 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { formatCurrency, formatTimestamp, formatNumber } from '@/lib/utils'
-import { eventsAPI, type BurnEvent, type LiquidityEvent, type TradeEvent, type PositionEvent } from '@/lib/api'
-import { Flame, Droplets, TrendingUp, Wallet } from 'lucide-react'
+} from '@/components/ui/dialog';
+import { formatCurrency, formatTimestamp, formatNumber } from '@/lib/utils';
+import {
+  eventsAPI,
+  type BurnEvent,
+  type LiquidityEvent,
+  type TradeEvent,
+  type PositionEvent,
+} from '@/lib/api';
+import { Flame, Droplets, TrendingUp, Wallet } from 'lucide-react';
 
-type EventType = 'all' | 'burns' | 'liquidity' | 'trades' | 'positions'
+type EventType = 'all' | 'burns' | 'liquidity' | 'trades' | 'positions';
 
 export default function EventsPage() {
-  const [activeTab, setActiveTab] = useState<EventType>('all')
-  const [events, setEvents] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedEvent, setSelectedEvent] = useState<any>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<EventType>('all');
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchEvents = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-      let data: any[] = []
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      let data: any[] = [];
 
       switch (activeTab) {
         case 'all':
-          const allData = await eventsAPI.getAll(50)
+          const allData = await eventsAPI.getAll(50);
           // Combine all event types
           data = [
             ...allData.burnEvents.map((e: BurnEvent) => ({ ...e, type: 'burn' })),
             ...allData.liquidityEvents.map((e: LiquidityEvent) => ({ ...e, type: 'liquidity' })),
             ...allData.tradeEvents.map((e: TradeEvent) => ({ ...e, type: 'trade' })),
             ...allData.positionEvents.map((e: PositionEvent) => ({ ...e, type: 'position' })),
-          ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          break
+          ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          break;
         case 'burns':
-          data = await eventsAPI.getBurns(100)
-          break
+          data = await eventsAPI.getBurns(100);
+          break;
         case 'liquidity':
-          data = await eventsAPI.getLiquidity(100)
-          break
+          data = await eventsAPI.getLiquidity(100);
+          break;
         case 'trades':
-          data = await eventsAPI.getTrades(100)
-          break
+          data = await eventsAPI.getTrades(100);
+          break;
         case 'positions':
-          data = await eventsAPI.getPositions(100)
-          break
+          data = await eventsAPI.getPositions(100);
+          break;
       }
 
-      setEvents(data)
+      setEvents(data);
     } catch (error) {
-      console.error('Error fetching events:', error)
+      console.error('Error fetching events:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchEvents()
-  }, [activeTab])
+    fetchEvents();
+  }, [activeTab]);
 
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'burn':
-        return <Flame className="h-4 w-4 text-orange-500" />
+        return <Flame className="h-4 w-4 text-orange-500" />;
       case 'liquidity':
-        return <Droplets className="h-4 w-4 text-blue-500" />
+        return <Droplets className="h-4 w-4 text-blue-500" />;
       case 'trade':
-        return <TrendingUp className="h-4 w-4 text-green-500" />
+        return <TrendingUp className="h-4 w-4 text-green-500" />;
       case 'position':
-        return <Wallet className="h-4 w-4 text-purple-500" />
+        return <Wallet className="h-4 w-4 text-purple-500" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const getEventTypeLabel = (type: string) => {
     switch (type) {
       case 'burn':
-        return 'Token Burn'
+        return 'Token Burn';
       case 'liquidity':
-        return 'Liquidity Change'
+        return 'Liquidity Change';
       case 'trade':
-        return 'Trade Executed'
+        return 'Trade Executed';
       case 'position':
-        return 'Position Update'
+        return 'Position Update';
       default:
-        return type
+        return type;
     }
-  }
+  };
 
   const getEventSummary = (event: any) => {
     if (event.type === 'burn' || activeTab === 'burns') {
-      return `${formatNumber(event.amount)} ${event.token} burned (${event.percentage.toFixed(2)}%)`
+      return `${formatNumber(event.amount)} ${event.token} burned (${event.percentage.toFixed(2)}%)`;
     } else if (event.type === 'liquidity' || activeTab === 'liquidity') {
-      return `${event.tokenA}/${event.tokenB}: TVL ${formatCurrency(event.tvl)}`
+      return `${event.tokenA}/${event.tokenB}: TVL ${formatCurrency(event.tvl)}`;
     } else if (event.type === 'trade' || activeTab === 'trades') {
-      return `${event.type} ${formatNumber(event.amount)} @ ${formatCurrency(event.price)}`
+      return `${event.type} ${formatNumber(event.amount)} @ ${formatCurrency(event.price)}`;
     } else if (event.type === 'position' || activeTab === 'positions') {
-      return `${event.token}: ${formatNumber(event.amount)} @ ${formatCurrency(event.entryPrice)} (P&L: ${event.pnl >= 0 ? '+' : ''}${event.pnl.toFixed(2)}%)`
+      return `${event.token}: ${formatNumber(event.amount)} @ ${formatCurrency(event.entryPrice)} (P&L: ${event.pnl >= 0 ? '+' : ''}${event.pnl.toFixed(2)}%)`;
     }
-    return 'Unknown event type'
-  }
+    return 'Unknown event type';
+  };
 
   const handleRowClick = (event: any) => {
-    setSelectedEvent(event)
-    setDialogOpen(true)
-  }
+    setSelectedEvent(event);
+    setDialogOpen(true);
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -189,11 +195,15 @@ export default function EventsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Type</label>
-                  <p className="mt-1">{getEventTypeLabel(selectedEvent.type || activeTab.slice(0, -1))}</p>
+                  <p className="mt-1">
+                    {getEventTypeLabel(selectedEvent.type || activeTab.slice(0, -1))}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Timestamp</label>
-                  <p className="mt-1">{formatTimestamp(selectedEvent.timestamp || selectedEvent.updatedAt)}</p>
+                  <p className="mt-1">
+                    {formatTimestamp(selectedEvent.timestamp || selectedEvent.updatedAt)}
+                  </p>
                 </div>
               </div>
 
@@ -239,7 +249,9 @@ export default function EventsPage() {
                     <p className="mt-1">{formatCurrency(selectedEvent.entryPrice)}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Current Price</label>
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Current Price
+                    </label>
                     <p className="mt-1">{formatCurrency(selectedEvent.currentPrice)}</p>
                   </div>
                 </div>
@@ -248,15 +260,20 @@ export default function EventsPage() {
               {selectedEvent.pnl !== undefined && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">P&L</label>
-                  <p className={`mt-1 ${selectedEvent.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {selectedEvent.pnl >= 0 ? '+' : ''}{selectedEvent.pnl.toFixed(2)}%
+                  <p
+                    className={`mt-1 ${selectedEvent.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                  >
+                    {selectedEvent.pnl >= 0 ? '+' : ''}
+                    {selectedEvent.pnl.toFixed(2)}%
                   </p>
                 </div>
               )}
 
               {(selectedEvent.txSignature || selectedEvent.signature) && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Transaction Signature</label>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Transaction Signature
+                  </label>
                   <p className="mt-1 font-mono text-xs break-all">
                     {selectedEvent.txSignature || selectedEvent.signature}
                   </p>
@@ -274,5 +291,5 @@ export default function EventsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

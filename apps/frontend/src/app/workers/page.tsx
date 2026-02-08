@@ -1,94 +1,94 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { formatTimestamp } from '@/lib/utils'
-import { workersAPI, type Worker } from '@/lib/api'
-import { CheckCircle, XCircle, Clock, Activity, Zap, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { formatTimestamp } from '@/lib/utils';
+import { workersAPI, type Worker } from '@/lib/api';
+import { CheckCircle, XCircle, Clock, Activity, Zap, AlertCircle } from 'lucide-react';
 
 export default function WorkersPage() {
-  const [workers, setWorkers] = useState<Worker[]>([])
-  const [loading, setLoading] = useState(true)
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   const fetchWorkers = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await workersAPI.getAll()
-      setWorkers(data)
-      setLastUpdate(new Date())
+      const data = await workersAPI.getAll();
+      setWorkers(data);
+      setLastUpdate(new Date());
     } catch (error) {
-      console.error('Error fetching workers:', error)
+      console.error('Error fetching workers:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchWorkers()
+    fetchWorkers();
 
     // Auto-refresh every 10 seconds
-    const interval = setInterval(fetchWorkers, 10000)
+    const interval = setInterval(fetchWorkers, 10000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const getStatusIcon = (status: Worker['status']) => {
     switch (status) {
       case 'RUNNING':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'STOPPED':
-        return <Clock className="h-5 w-5 text-yellow-500" />
+        return <Clock className="h-5 w-5 text-yellow-500" />;
       case 'ERROR':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-5 w-5 text-red-500" />;
     }
-  }
+  };
 
   const getStatusColor = (status: Worker['status']) => {
     switch (status) {
       case 'RUNNING':
-        return 'border-green-500/20 bg-green-500/5'
+        return 'border-green-500/20 bg-green-500/5';
       case 'STOPPED':
-        return 'border-yellow-500/20 bg-yellow-500/5'
+        return 'border-yellow-500/20 bg-yellow-500/5';
       case 'ERROR':
-        return 'border-red-500/20 bg-red-500/5'
+        return 'border-red-500/20 bg-red-500/5';
     }
-  }
+  };
 
   const getStatusBadgeColor = (status: Worker['status']) => {
     switch (status) {
       case 'RUNNING':
-        return 'bg-green-500/10 text-green-500'
+        return 'bg-green-500/10 text-green-500';
       case 'STOPPED':
-        return 'bg-yellow-500/10 text-yellow-500'
+        return 'bg-yellow-500/10 text-yellow-500';
       case 'ERROR':
-        return 'bg-red-500/10 text-red-500'
+        return 'bg-red-500/10 text-red-500';
     }
-  }
+  };
 
   const formatUptime = (ms?: number) => {
-    if (!ms) return 'N/A'
-    const seconds = Math.floor(ms / 1000)
-    const minutes = Math.floor(seconds / 60)
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
+    if (!ms) return 'N/A';
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days}d ${hours % 24}h`
-    if (hours > 0) return `${hours}h ${minutes % 60}m`
-    if (minutes > 0) return `${minutes}m ${seconds % 60}s`
-    return `${seconds}s`
-  }
+    if (days > 0) return `${days}d ${hours % 24}h`;
+    if (hours > 0) return `${hours}h ${minutes % 60}m`;
+    if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+    return `${seconds}s`;
+  };
 
   const formatLastSeen = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffSecs = Math.floor(diffMs / 1000)
-    const diffMins = Math.floor(diffSecs / 60)
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
 
-    if (diffSecs < 60) return `${diffSecs}s ago`
-    if (diffMins < 60) return `${diffMins}m ago`
-    return formatTimestamp(timestamp)
-  }
+    if (diffSecs < 60) return `${diffSecs}s ago`;
+    if (diffMins < 60) return `${diffMins}m ago`;
+    return formatTimestamp(timestamp);
+  };
 
   return (
     <div className="container mx-auto py-6">
@@ -124,7 +124,9 @@ export default function WorkersPage() {
                   {getStatusIcon(worker.status)}
                   <div>
                     <h3 className="font-semibold text-lg">{worker.name}</h3>
-                    <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${getStatusBadgeColor(worker.status)}`}>
+                    <span
+                      className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${getStatusBadgeColor(worker.status)}`}
+                    >
                       {worker.status}
                     </span>
                   </div>
@@ -148,12 +150,18 @@ export default function WorkersPage() {
                           {worker.metrics.eventsProcessed?.toLocaleString() || 0}
                         </div>
                       </div>
-                      <div className={`rounded-md bg-muted/50 p-3 ${worker.metrics.errors && worker.metrics.errors > 0 ? 'border border-red-500/20' : ''}`}>
+                      <div
+                        className={`rounded-md bg-muted/50 p-3 ${worker.metrics.errors && worker.metrics.errors > 0 ? 'border border-red-500/20' : ''}`}
+                      >
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                          <AlertCircle className={`h-3 w-3 ${worker.metrics.errors && worker.metrics.errors > 0 ? 'text-red-500' : ''}`} />
+                          <AlertCircle
+                            className={`h-3 w-3 ${worker.metrics.errors && worker.metrics.errors > 0 ? 'text-red-500' : ''}`}
+                          />
                           Errors
                         </div>
-                        <div className={`text-lg font-semibold ${worker.metrics.errors && worker.metrics.errors > 0 ? 'text-red-500' : ''}`}>
+                        <div
+                          className={`text-lg font-semibold ${worker.metrics.errors && worker.metrics.errors > 0 ? 'text-red-500' : ''}`}
+                        >
                           {worker.metrics.errors?.toLocaleString() || 0}
                         </div>
                       </div>
@@ -175,9 +183,7 @@ export default function WorkersPage() {
                 )}
 
                 {!worker.metrics && (
-                  <div className="text-sm text-muted-foreground">
-                    No metrics available
-                  </div>
+                  <div className="text-sm text-muted-foreground">No metrics available</div>
                 )}
               </div>
             </div>
@@ -204,5 +210,5 @@ export default function WorkersPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

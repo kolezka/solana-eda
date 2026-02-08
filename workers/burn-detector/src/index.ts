@@ -1,7 +1,11 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
 import { PublicKey } from '@solana/web3.js';
-import { SolanaConnectionManager, TransactionParser, ParsedBurnTransaction } from '@solana-eda/solana-client';
+import {
+  SolanaConnectionManager,
+  TransactionParser,
+  ParsedBurnTransaction,
+} from '@solana-eda/solana-client';
 import { getPrismaClient, BurnEventRepository } from '@solana-eda/database';
 import { createBurnEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
@@ -125,30 +129,29 @@ class BurnDetectorWorker {
       // Subscribe to Token Program logs
       // Note: onLogs expects a PublicKey, so we subscribe to the Token Program itself
       const tokenProgramPubkey = new PublicKey(TOKEN_PROGRAM);
-      this.subscriptionId = wsConn.onLogs(
-        tokenProgramPubkey,
-        async (logs, context) => {
-          if (!this.running) return;
+      this.subscriptionId = wsConn.onLogs(tokenProgramPubkey, async (logs, context) => {
+        if (!this.running) return;
 
-          try {
-            await this.processLog(logs, context);
-          } catch (error) {
-            console.error(`[BurnDetector] Error processing log:`, error);
-            this.metrics.errors++;
-            await this.updateWorkerStatus('RUNNING');
-          }
+        try {
+          await this.processLog(logs, context);
+        } catch (error) {
+          console.error(`[BurnDetector] Error processing log:`, error);
+          this.metrics.errors++;
+          await this.updateWorkerStatus('RUNNING');
         }
-      );
+      });
 
       console.log(`[BurnDetector] Subscribed with ID: ${this.subscriptionId}`);
 
       // Keep process alive
       await this.keepAlive();
-
     } catch (error) {
       console.error(`[BurnDetector] Error in subscribeToTransactions:`, error);
       this.metrics.errors++;
-      await this.updateWorkerStatus('ERROR', error instanceof Error ? error.message : 'Unknown error');
+      await this.updateWorkerStatus(
+        'ERROR',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
 
       // Retry after delay with exponential backoff
       const retryDelay = Math.min(5000 * Math.pow(2, this.metrics.errors), 60000);
@@ -203,11 +206,15 @@ class BurnDetectorWorker {
         return;
       }
 
-      console.log(`[BurnDetector] Burn detected: ${burnTx.token.slice(0, 8)}... - ${burnTx.amount}`);
+      console.log(
+        `[BurnDetector] Burn detected: ${burnTx.token.slice(0, 8)}... - ${burnTx.amount}`,
+      );
 
       // Check minimum burn threshold
       if (!this.parser.meetsMinimumThreshold(burnTx, MIN_BURN_THRESHOLD)) {
-        console.debug(`[BurnDetector] Burn below threshold: ${burnTx.amount} < ${MIN_BURN_THRESHOLD}`);
+        console.debug(
+          `[BurnDetector] Burn below threshold: ${burnTx.amount} < ${MIN_BURN_THRESHOLD}`,
+        );
         this.metrics.belowThresholdFiltered++;
         return;
       }
@@ -215,7 +222,9 @@ class BurnDetectorWorker {
       // Calculate burn percentage
       const percentage = this.parser.calculateBurnPercentage(burnTx);
 
-      console.log(`[BurnDetector] Valid burn: ${burnTx.token.slice(0, 8)}... - ${burnTx.amount} (${percentage.toFixed(4)}%)`);
+      console.log(
+        `[BurnDetector] Valid burn: ${burnTx.token.slice(0, 8)}... - ${burnTx.amount} (${percentage.toFixed(4)}%)`,
+      );
 
       // Save to database
       const burnAmount = Number(burnTx.amount);
@@ -245,9 +254,10 @@ class BurnDetectorWorker {
 
       if (this.metrics.eventsProcessed % 10 === 0) {
         await this.updateWorkerStatus('RUNNING');
-        console.log(`[BurnDetector] Stats: ${this.metrics.burnsDetected} burns, ${this.metrics.duplicatesFiltered} duplicates filtered, ${this.metrics.belowThresholdFiltered} below threshold`);
+        console.log(
+          `[BurnDetector] Stats: ${this.metrics.burnsDetected} burns, ${this.metrics.duplicatesFiltered} duplicates filtered, ${this.metrics.belowThresholdFiltered} below threshold`,
+        );
       }
-
     } catch (error) {
       console.error(`[BurnDetector] Error processing log:`, error);
       throw error;
@@ -276,7 +286,7 @@ class BurnDetectorWorker {
 
   private async keepAlive() {
     while (this.running) {
-      await new Promise(resolve => setTimeout(resolve, 60000));
+      await new Promise((resolve) => setTimeout(resolve, 60000));
 
       // Update status periodically
       await this.updateWorkerStatus('RUNNING');

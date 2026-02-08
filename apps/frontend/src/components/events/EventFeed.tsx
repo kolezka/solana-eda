@@ -1,61 +1,61 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Flame, TrendingUp, DollarSign, Activity, Clock } from 'lucide-react'
-import { formatTimestamp, formatNumber } from '@/lib/utils'
+import { useState } from 'react';
+import { Flame, TrendingUp, DollarSign, Activity, Clock } from 'lucide-react';
+import { formatTimestamp, formatNumber } from '@/lib/utils';
 
 interface Event {
-  type: string
-  data: any
-  timestamp: string
-  id: string
+  type: string;
+  data: any;
+  timestamp: string;
+  id: string;
 }
 
 interface EventFeedProps {
-  events: Event[]
+  events: Event[];
 }
 
 export default function EventFeed({ events }: EventFeedProps) {
-  const [filter, setFilter] = useState<string>('all')
+  const [filter, setFilter] = useState<string>('all');
 
   const filteredEvents = events.filter((event) => {
-    if (filter === 'all') return true
-    return event.type.toLowerCase().includes(filter.toLowerCase())
-  })
+    if (filter === 'all') return true;
+    return event.type.toLowerCase().includes(filter.toLowerCase());
+  });
 
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'BURN_DETECTED':
-        return <Flame className="h-4 w-4 text-orange-500" />
+        return <Flame className="h-4 w-4 text-orange-500" />;
       case 'LIQUIDITY_CHANGED':
-        return <TrendingUp className="h-4 w-4 text-blue-500" />
+        return <TrendingUp className="h-4 w-4 text-blue-500" />;
       case 'TRADE_EXECUTED':
-        return <DollarSign className="h-4 w-4 text-green-500" />
+        return <DollarSign className="h-4 w-4 text-green-500" />;
       case 'POSITION_OPENED':
-        return <Activity className="h-4 w-4 text-purple-500" />
+        return <Activity className="h-4 w-4 text-purple-500" />;
       case 'POSITION_CLOSED':
-        return <Activity className="h-4 w-4 text-gray-500" />
+        return <Activity className="h-4 w-4 text-gray-500" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-400" />
+        return <Clock className="h-4 w-4 text-gray-400" />;
     }
-  }
+  };
 
   const getEventColor = (type: string) => {
     switch (type) {
       case 'BURN_DETECTED':
-        return 'bg-orange-500/10 border-orange-500/20'
+        return 'bg-orange-500/10 border-orange-500/20';
       case 'LIQUIDITY_CHANGED':
-        return 'bg-blue-500/10 border-blue-500/20'
+        return 'bg-blue-500/10 border-blue-500/20';
       case 'TRADE_EXECUTED':
-        return 'bg-green-500/10 border-green-500/20'
+        return 'bg-green-500/10 border-green-500/20';
       case 'POSITION_OPENED':
-        return 'bg-purple-500/10 border-purple-500/20'
+        return 'bg-purple-500/10 border-purple-500/20';
       case 'POSITION_CLOSED':
-        return 'bg-gray-500/10 border-gray-500/20'
+        return 'bg-gray-500/10 border-gray-500/20';
       default:
-        return 'bg-gray-500/10 border-gray-500/20'
+        return 'bg-gray-500/10 border-gray-500/20';
     }
-  }
+  };
 
   return (
     <div className="rounded-lg border bg-card p-6">
@@ -101,9 +101,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     </>
                   )}
                   {event.type === 'LIQUIDITY_CHANGED' && (
-                    <>
-                      TVL changed by {event.data.changePercentage.toFixed(2)}%
-                    </>
+                    <>TVL changed by {event.data.changePercentage.toFixed(2)}%</>
                   )}
                   {event.type === 'TRADE_EXECUTED' && (
                     <>
@@ -118,9 +116,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     </>
                   )}
                   {event.type === 'POSITION_CLOSED' && (
-                    <>
-                      Closed position: P&L {formatNumber(Number(event.data.pnlPercent))}%
-                    </>
+                    <>Closed position: P&L {formatNumber(Number(event.data.pnlPercent))}%</>
                   )}
                 </div>
               </div>
@@ -129,5 +125,5 @@ export default function EventFeed({ events }: EventFeedProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -19,10 +19,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 /**
  * Base fetch wrapper with error handling
  */
-async function fetchAPI<T>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<T> {
+async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_URL}${endpoint}`;
 
   try {
@@ -36,9 +33,7 @@ async function fetchAPI<T>(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `API Error (${response.status}): ${errorText || response.statusText}`
-      );
+      throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`);
     }
 
     return await response.json();
@@ -66,11 +61,9 @@ export const workersAPI = {
 export const eventsAPI = {
   getAll: (limit = 50) => fetchAPI<any>(`/events?limit=${limit}`),
   getBurns: (limit = 50) => fetchAPI<BurnEvent[]>(`/events/burn?limit=${limit}`),
-  getLiquidity: (limit = 50) =>
-    fetchAPI<LiquidityEvent[]>(`/events/liquidity?limit=${limit}`),
+  getLiquidity: (limit = 50) => fetchAPI<LiquidityEvent[]>(`/events/liquidity?limit=${limit}`),
   getTrades: (limit = 50) => fetchAPI<TradeEvent[]>(`/events/trades?limit=${limit}`),
-  getPositions: (limit = 50) =>
-    fetchAPI<PositionEvent[]>(`/events/positions?limit=${limit}`),
+  getPositions: (limit = 50) => fetchAPI<PositionEvent[]>(`/events/positions?limit=${limit}`),
   getPrices: (limit = 100, token?: string) =>
     fetchAPI<PriceEvent[]>(`/events/prices?limit=${limit}${token ? `&token=${token}` : ''}`),
 };
@@ -103,8 +96,7 @@ export const positionsAPI = {
 export const tradingAPI = {
   getSettings: () => fetchAPI<TradeSettings[]>('/trading/settings'),
   getEnabledSettings: () => fetchAPI<TradeSettings[]>('/trading/settings/enabled'),
-  getSettingsByName: (name: string) =>
-    fetchAPI<TradeSettings>(`/trading/settings/${name}`),
+  getSettingsByName: (name: string) => fetchAPI<TradeSettings>(`/trading/settings/${name}`),
   updateSettings: (id: string, data: Partial<TradeSettings>) =>
     fetchAPI<TradeSettings>(`/trading/settings/${id}`, {
       method: 'PUT',

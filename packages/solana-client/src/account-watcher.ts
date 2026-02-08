@@ -2,10 +2,7 @@ import { PublicKey } from '@solana/web3.js';
 import type { AccountInfo } from '@solana/web3.js';
 import { SolanaConnectionManager } from './connection';
 
-export type AccountChangeCallback = (
-  accountInfo: AccountInfo<Buffer> | null,
-  context: any
-) => void;
+export type AccountChangeCallback = (accountInfo: AccountInfo<Buffer> | null, context: any) => void;
 
 export class AccountWatcher {
   private connection: SolanaConnectionManager;
@@ -16,10 +13,7 @@ export class AccountWatcher {
     this.subscriptions = new Map();
   }
 
-  watchAccount(
-    publicKey: PublicKey | string,
-    callback: AccountChangeCallback
-  ): number {
+  watchAccount(publicKey: PublicKey | string, callback: AccountChangeCallback): number {
     const pubKey = typeof publicKey === 'string' ? new PublicKey(publicKey) : publicKey;
 
     const subscriptionId = this.connection.onAccountChange(pubKey, callback, 'confirmed');

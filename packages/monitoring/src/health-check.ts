@@ -37,7 +37,7 @@ export class HealthChecker {
   register(
     name: string,
     checkFn: (options?: HealthCheckOptions) => Promise<HealthCheck>,
-    runImmediately: boolean = true
+    runImmediately: boolean = true,
   ): void {
     this.checks.set(name, checkFn);
 
@@ -73,12 +73,12 @@ export class HealthChecker {
     try {
       // Apply timeout if specified
       const timeout = options?.timeout || 5000;
-      const result = await Promise.race([
+      const result = (await Promise.race([
         checkFn(options),
         new Promise<HealthCheck>((_, reject) =>
-          setTimeout(() => reject(new Error('Health check timeout')), timeout)
+          setTimeout(() => reject(new Error('Health check timeout')), timeout),
         ),
-      ]) as HealthCheck;
+      ])) as HealthCheck;
 
       result.responseTime = Date.now() - startTime;
       result.lastChecked = new Date().toISOString();
@@ -106,9 +106,7 @@ export class HealthChecker {
   async runAllChecks(options?: HealthCheckOptions): Promise<HealthCheckResult> {
     const checkNames = Array.from(this.checks.keys());
 
-    const results = await Promise.all(
-      checkNames.map(name => this.runCheck(name, options))
-    );
+    const results = await Promise.all(checkNames.map((name) => this.runCheck(name, options)));
 
     const checks: Record<string, HealthCheck> = {};
     checkNames.forEach((name, index) => {
@@ -122,11 +120,11 @@ export class HealthChecker {
     let overallStatus = HealthStatus.HEALTHY;
 
     const hasUnhealthy = Object.values(checks).some(
-      check => check.status === HealthStatus.UNHEALTHY
+      (check) => check.status === HealthStatus.UNHEALTHY,
     );
 
     const hasDegraded = Object.values(checks).some(
-      check => check.status === HealthStatus.DEGRADED
+      (check) => check.status === HealthStatus.DEGRADED,
     );
 
     if (hasUnhealthy) {
@@ -156,11 +154,11 @@ export class HealthChecker {
     let overallStatus = HealthStatus.HEALTHY;
 
     const hasUnhealthy = Object.values(checks).some(
-      check => check.status === HealthStatus.UNHEALTHY
+      (check) => check.status === HealthStatus.UNHEALTHY,
     );
 
     const hasDegraded = Object.values(checks).some(
-      check => check.status === HealthStatus.DEGRADED
+      (check) => check.status === HealthStatus.DEGRADED,
     );
 
     if (hasUnhealthy) {
@@ -194,7 +192,7 @@ export class HealthChecks {
    */
   static database(
     pingFn: () => Promise<void>,
-    options?: { maxResponseTime?: number }
+    options?: { maxResponseTime?: number },
   ): () => Promise<HealthCheck> {
     return async () => {
       const startTime = Date.now();
@@ -231,10 +229,7 @@ export class HealthChecks {
   /**
    * Redis health check
    */
-  static redis(
-    client: any,
-    options?: { maxResponseTime?: number }
-  ): () => Promise<HealthCheck> {
+  static redis(client: any, options?: { maxResponseTime?: number }): () => Promise<HealthCheck> {
     return async () => {
       const startTime = Date.now();
 
@@ -272,7 +267,7 @@ export class HealthChecks {
    */
   static solanaRPC(
     getConnection: () => any,
-    options?: { maxResponseTime?: number }
+    options?: { maxResponseTime?: number },
   ): () => Promise<HealthCheck> {
     return async () => {
       const startTime = Date.now();
@@ -310,7 +305,10 @@ export class HealthChecks {
   /**
    * Memory health check
    */
-  static memory(options?: { warningThreshold?: number; criticalThreshold?: number }): () => Promise<HealthCheck> {
+  static memory(options?: {
+    warningThreshold?: number;
+    criticalThreshold?: number;
+  }): () => Promise<HealthCheck> {
     return async () => {
       const used = process.memoryUsage();
       const totalMemory = require('os').totalmem();

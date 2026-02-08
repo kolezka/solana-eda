@@ -67,13 +67,14 @@ export class WorkersController {
   @Get('stale')
   @ApiOperation({
     summary: 'Get stale workers',
-    description: 'Retrieves workers that have not reported status recently, indicating potential issues.',
+    description:
+      'Retrieves workers that have not reported status recently, indicating potential issues.',
   })
   @ApiQuery({
     name: 'olderThanMinutes',
     required: false,
     type: Number,
-    description: 'Consider workers stale if they haven\'t reported status within this many minutes',
+    description: "Consider workers stale if they haven't reported status within this many minutes",
     example: 5,
   })
   @ApiResponse({

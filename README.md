@@ -5,6 +5,7 @@ Event-driven architecture for Solana on-chain monitoring and automated trading.
 ## What is this?
 
 A monorepo system where:
+
 - **Workers** subscribe to Solana network events (burns, liquidity changes, price updates)
 - Events flow through a message broker (Redis)
 - **Trading workers** react to events and execute strategies
@@ -14,6 +15,7 @@ A monorepo system where:
 ## Multi-DEX Support
 
 The trading bot supports **all major Solana DEXes** via Jupiter aggregator:
+
 - **Jupiter**: Best price aggregator (most popular, fastest quotes)
 - **Orca**: Whirlpool pools
 - **Meteora**: DLMM pools
@@ -57,6 +59,7 @@ pnpm dev
 ```
 
 The following services will be available:
+
 - API: http://localhost:3000
 - Frontend: http://localhost:3001
 - PostgreSQL: localhost:5432
@@ -101,26 +104,27 @@ solana-eda/
 
 ## Workers
 
-| Worker | Purpose |
-|--------|---------|
-| `burn-detector` | Detects token burn events via Token Program logs |
-| `liquidity-monitor` | Monitors DEX pool state changes (Orca, Raydium) |
-| `price-aggregator` | Aggregates prices from multiple DEX sources |
-| `trading-bot` | Executes trading strategies based on events |
+| Worker              | Purpose                                          |
+| ------------------- | ------------------------------------------------ |
+| `burn-detector`     | Detects token burn events via Token Program logs |
+| `liquidity-monitor` | Monitors DEX pool state changes (Orca, Raydium)  |
+| `price-aggregator`  | Aggregates prices from multiple DEX sources      |
+| `trading-bot`       | Executes trading strategies based on events      |
 
 ## Frontend Pages
 
-| Page | Description |
-|------|-------------|
-| `/` | Dashboard with stats and charts |
-| `/events` | Event history with filters |
+| Page         | Description                      |
+| ------------ | -------------------------------- |
+| `/`          | Dashboard with stats and charts  |
+| `/events`    | Event history with filters       |
 | `/positions` | Open/closed positions management |
-| `/workers` | Worker status monitoring |
-| `/settings` | Trading settings configuration |
+| `/workers`   | Worker status monitoring         |
+| `/settings`  | Trading settings configuration   |
 
 ## Status
 
 ✅ **Phase 1-4 Complete** - All phases implemented:
+
 - ✅ Foundation (API, Frontend, Database, Events)
 - ✅ Workers (burn-detector, liquidity-monitor, price-aggregator)
 - ✅ Multi-DEX Integration (Jupiter, Orca, Raydium, Meteora)

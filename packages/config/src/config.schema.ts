@@ -122,8 +122,8 @@ export const DEFAULT_CONFIG: Partial<AppConfig> = {
       enabled: false,
       maxPositions: 5,
       maxSlippage: 0.03,
-      stopLossPercent: 0.10,
-      takeProfitPercent: 0.50,
+      stopLossPercent: 0.1,
+      takeProfitPercent: 0.5,
       minBurnAmount: 1000000,
       positionSizing: 'RISK_BASED',
       maxPositionSize: 1000,
@@ -288,5 +288,8 @@ export function getNumberEnv(name: string, defaultValue: number): number {
 export function getArrayEnv(name: string, defaultValue: string[]): string[] {
   const value = process.env[name];
   if (!value) return defaultValue;
-  return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  return value
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
 }

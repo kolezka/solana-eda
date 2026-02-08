@@ -35,7 +35,7 @@ export class MeteoraClient implements DEXClient {
   constructor(
     private connection: Connection,
     private wallet: Keypair,
-    apiUrl: string = 'https://quote-api.jup.ag/v6'
+    apiUrl: string = 'https://quote-api.jup.ag/v6',
   ) {
     this.apiUrl = apiUrl;
   }
@@ -43,11 +43,7 @@ export class MeteoraClient implements DEXClient {
   /**
    * Get a quote using Jupiter API with Meteora routing
    */
-  async getQuote(
-    inputMint: string,
-    outputMint: string,
-    amount: string
-  ): Promise<DEXQuote> {
+  async getQuote(inputMint: string, outputMint: string, amount: string): Promise<DEXQuote> {
     try {
       // Use Jupiter API to get quotes
       const params = new URLSearchParams({
@@ -65,11 +61,11 @@ export class MeteoraClient implements DEXClient {
         throw new Error(`Quote API error: ${response.statusText}`);
       }
 
-      const quoteResponse = await response.json() as QuoteResponse;
+      const quoteResponse = (await response.json()) as QuoteResponse;
 
       // Check if route uses Meteora
       const hasMeteoraRoute = quoteResponse.routePlan?.some((step) =>
-        step.swapInfo?.label?.toLowerCase().includes('meteora')
+        step.swapInfo?.label?.toLowerCase().includes('meteora'),
       );
 
       if (!hasMeteoraRoute) {
@@ -85,12 +81,14 @@ export class MeteoraClient implements DEXClient {
         inAmount: amount,
         outAmount: quoteResponse.outAmount,
         priceImpactPct,
-        routePlan: [{
-          dex: 'Meteora',
-          inputMint,
-          outputMint,
-          percent: 100,
-        }],
+        routePlan: [
+          {
+            dex: 'Meteora',
+            inputMint,
+            outputMint,
+            percent: 100,
+          },
+        ],
       };
     } catch (error) {
       console.error('[MeteoraClient] Error getting quote:', error);
@@ -101,10 +99,7 @@ export class MeteoraClient implements DEXClient {
   /**
    * Execute a swap using Jupiter API (which will route through Meteora if available)
    */
-  async executeSwap(
-    quote: DEXQuote,
-    maxSlippageBps: number = 50
-  ): Promise<DEXSwapResult> {
+  async executeSwap(quote: DEXQuote, maxSlippageBps: number = 50): Promise<DEXSwapResult> {
     try {
       const swapRequest = {
         quoteResponse: {
@@ -134,7 +129,7 @@ export class MeteoraClient implements DEXClient {
         throw new Error(`Swap API error: ${response.statusText}`);
       }
 
-      const swapResponse = await response.json() as SwapResponse;
+      const swapResponse = (await response.json()) as SwapResponse;
 
       if (swapResponse.success === false) {
         throw new Error(`Swap failed: ${swapResponse.error || 'Unknown error'}`);

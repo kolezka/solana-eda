@@ -14,10 +14,12 @@ const healthChecker = getHealthChecker();
 /**
  * Request logging middleware
  */
-export function requestLogging(options: {
-  excludePaths?: string[];
-  logLevel?: LogLevel;
-} = {}) {
+export function requestLogging(
+  options: {
+    excludePaths?: string[];
+    logLevel?: LogLevel;
+  } = {},
+) {
   const { excludePaths = [], logLevel = LogLevel.INFO } = options;
 
   return (req: Request, res: Response, next: NextFunction) => {
@@ -25,7 +27,7 @@ export function requestLogging(options: {
     const path = req.path;
 
     // Check if path should be excluded
-    if (excludePaths.some(excluded => path.includes(excluded))) {
+    if (excludePaths.some((excluded) => path.includes(excluded))) {
       return next();
     }
 
@@ -104,7 +106,7 @@ export function requestLogging(options: {
 export function requestMetrics() {
   const requestsInProgress = metricsRegistry.gauge(
     COMMON_METRICS.HTTP_REQUESTS_IN_PROGRESS,
-    'HTTP requests currently in progress'
+    'HTTP requests currently in progress',
   );
 
   return (req: Request, res: Response, next: NextFunction) => {
@@ -112,7 +114,11 @@ export function requestMetrics() {
 
     // Increment in-progress counter
     requestsInProgress(
-      (parseInt(metricsRegistry.getMetricsAsObject()[COMMON_METRICS.HTTP_REQUESTS_IN_PROGRESS]?.value.toString() || '0') || 0) + 1
+      (parseInt(
+        metricsRegistry
+          .getMetricsAsObject()
+          [COMMON_METRICS.HTTP_REQUESTS_IN_PROGRESS]?.value.toString() || '0',
+      ) || 0) + 1,
     );
 
     // Record metrics on response finish
@@ -132,7 +138,11 @@ export function requestMetrics() {
 
       // Decrement in-progress counter
       requestsInProgress(
-        (parseInt(metricsRegistry.getMetricsAsObject()[COMMON_METRICS.HTTP_REQUESTS_IN_PROGRESS]?.value.toString() || '0') || 0) - 1
+        (parseInt(
+          metricsRegistry
+            .getMetricsAsObject()
+            [COMMON_METRICS.HTTP_REQUESTS_IN_PROGRESS]?.value.toString() || '0',
+        ) || 0) - 1,
       );
     });
 
@@ -166,27 +176,30 @@ export function errorTracking() {
 /**
  * Health check endpoint handler
  */
-export function healthCheckHandler(options: {
-  includeDetails?: boolean;
-  runChecks?: boolean;
-} = {}) {
+export function healthCheckHandler(
+  options: {
+    includeDetails?: boolean;
+    runChecks?: boolean;
+  } = {},
+) {
   return async (req: Request, res: Response) => {
     try {
       const result = options.runChecks
         ? await healthChecker.runAllChecks()
         : healthChecker.getCurrentStatus();
 
-      const statusCode = result.status === HealthStatus.HEALTHY
-        ? 200
-        : result.status === HealthStatus.DEGRADED
-        ? 200 // Still return 200 for degraded but include details
-        : 503;
+      const statusCode =
+        result.status === HealthStatus.HEALTHY
+          ? 200
+          : result.status === HealthStatus.DEGRADED
+            ? 200 // Still return 200 for degraded but include details
+            : 503;
 
-      res.status(statusCode).json(
-        options.includeDetails
-          ? result
-          : { status: result.status, timestamp: result.timestamp }
-      );
+      res
+        .status(statusCode)
+        .json(
+          options.includeDetails ? result : { status: result.status, timestamp: result.timestamp },
+        );
     } catch (error) {
       res.status(503).json({
         status: HealthStatus.UNHEALTHY,
@@ -211,9 +224,11 @@ export function metricsHandler() {
 /**
  * Readiness probe handler
  */
-export function readinessHandler(options: {
-  checks?: string[];
-} = {}) {
+export function readinessHandler(
+  options: {
+    checks?: string[];
+  } = {},
+) {
   return async (req: Request, res: Response) => {
     try {
       const result = await healthChecker.runAllChecks();
@@ -230,7 +245,7 @@ export function readinessHandler(options: {
       }
 
       const allHealthy = Object.values(checks).every(
-        check => check.status === HealthStatus.HEALTHY
+        (check) => check.status === HealthStatus.HEALTHY,
       );
 
       res.status(allHealthy ? 200 : 503).json({
@@ -266,7 +281,7 @@ export function livenessHandler() {
  */
 export function requestId() {
   return (req: Request, res: Response, next: NextFunction) => {
-    const id = req.headers['x-request-id'] as string || generateRequestId();
+    const id = (req.headers['x-request-id'] as string) || generateRequestId();
     res.setHeader('X-Request-ID', id);
     (req as any).requestId = id;
     next();

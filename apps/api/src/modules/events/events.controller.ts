@@ -93,9 +93,16 @@ export class EventsController {
   @Get()
   @ApiOperation({
     summary: 'Get all recent events',
-    description: 'Retrieves a combined list of all recent events including burns, liquidity changes, trades, and position updates.',
+    description:
+      'Retrieves a combined list of all recent events including burns, liquidity changes, trades, and position updates.',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of events per type (default: 50)', example: 50 })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of events per type (default: 50)',
+    example: 50,
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved all events',
@@ -110,7 +117,13 @@ export class EventsController {
     summary: 'Get burn events',
     description: 'Retrieves recent token burn events detected by the burn detector worker.',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of events (default: 50)', example: 50 })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of events (default: 50)',
+    example: 50,
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved burn events',
@@ -125,7 +138,13 @@ export class EventsController {
     summary: 'Get liquidity events',
     description: 'Retrieves recent liquidity pool state changes with significant TVL movements.',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of events (default: 50)', example: 50 })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of events (default: 50)',
+    example: 50,
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved liquidity events',
@@ -140,7 +159,13 @@ export class EventsController {
     summary: 'Get trade events',
     description: 'Retrieves recent trade executions including both buys and sells.',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of events (default: 50)', example: 50 })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of events (default: 50)',
+    example: 50,
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved trade events',
@@ -155,7 +180,13 @@ export class EventsController {
     summary: 'Get position events',
     description: 'Retrieves current and recent trading positions with their status.',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of events (default: 50)', example: 50 })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of events (default: 50)',
+    example: 50,
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved position events',
@@ -170,17 +201,26 @@ export class EventsController {
     summary: 'Get price events',
     description: 'Retrieves recent price updates from the price aggregator worker.',
   })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of events (default: 100)', example: 100 })
-  @ApiQuery({ name: 'token', required: false, type: String, description: 'Filter by token mint address', example: 'So11111111111111111111111111111111111111112' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of events (default: 100)',
+    example: 100,
+  })
+  @ApiQuery({
+    name: 'token',
+    required: false,
+    type: String,
+    description: 'Filter by token mint address',
+    example: 'So11111111111111111111111111111111111111112',
+  })
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved price events',
     type: [PriceEvent],
   })
-  async getPriceEvents(
-    @Query('limit') limit: number = 100,
-    @Query('token') token?: string
-  ) {
+  async getPriceEvents(@Query('limit') limit: number = 100, @Query('token') token?: string) {
     return await this.eventsService.getPriceEvents(limit, token);
   }
 }

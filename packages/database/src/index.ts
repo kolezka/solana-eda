@@ -1,4 +1,4 @@
-export * from './client';
+export * from './generated/client';
 
 export * from './repositories/burn-event.repository';
 export * from './repositories/liquidity-pool.repository';

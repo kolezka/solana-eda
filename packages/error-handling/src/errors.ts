@@ -7,7 +7,7 @@ export class BaseError extends Error {
     message: string,
     public code: string,
     public statusCode: number = 500,
-    public details?: Record<string, unknown>
+    public details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -38,7 +38,7 @@ export class NotFoundError extends BaseError {
       id ? `${resource} with id '${id}' not found` : `${resource} not found`,
       'NOT_FOUND',
       404,
-      { resource, id }
+      { resource, id },
     );
   }
 }
@@ -51,12 +51,7 @@ export class ConflictError extends BaseError {
 
 export class RateLimitError extends BaseError {
   constructor(retryAfter?: number) {
-    super(
-      'Rate limit exceeded',
-      'RATE_LIMIT_EXCEEDED',
-      429,
-      { retryAfter }
-    );
+    super('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED', 429, { retryAfter });
   }
 }
 
@@ -66,7 +61,7 @@ export class ServiceUnavailableError extends BaseError {
       reason ? `${service} unavailable: ${reason}` : `${service} unavailable`,
       'SERVICE_UNAVAILABLE',
       503,
-      { service }
+      { service },
     );
   }
 }
@@ -75,7 +70,7 @@ export class SolanaRPCError extends BaseError {
   constructor(
     message: string,
     public rpcCode?: number,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     super(message, 'SOLANA_RPC_ERROR', 502, details);
   }
@@ -85,7 +80,7 @@ export class TradingError extends BaseError {
   constructor(
     message: string,
     public tradeId?: string,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     super(message, 'TRADING_ERROR', 500, { tradeId, ...details });
   }
@@ -93,21 +88,20 @@ export class TradingError extends BaseError {
 
 export class InsufficientLiquidityError extends TradingError {
   constructor(tokenPair: string, required: bigint, available: bigint) {
-    super(
-      `Insufficient liquidity for ${tokenPair}`,
-      undefined,
-      { tokenPair, required: required.toString(), available: available.toString() }
-    );
+    super(`Insufficient liquidity for ${tokenPair}`, undefined, {
+      tokenPair,
+      required: required.toString(),
+      available: available.toString(),
+    });
   }
 }
 
 export class SlippageExceededError extends TradingError {
   constructor(expected: string, actual: string) {
-    super(
-      `Slippage tolerance exceeded: expected ${expected}, got ${actual}`,
-      undefined,
-      { expected, actual }
-    );
+    super(`Slippage tolerance exceeded: expected ${expected}, got ${actual}`, undefined, {
+      expected,
+      actual,
+    });
   }
 }
 
@@ -115,7 +109,7 @@ export class PositionError extends BaseError {
   constructor(
     message: string,
     public positionId?: string,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     super(message, 'POSITION_ERROR', 400, { positionId, ...details });
   }
@@ -125,7 +119,7 @@ export class WorkerError extends BaseError {
   constructor(
     message: string,
     public workerName: string,
-    details?: Record<string, unknown>
+    details?: Record<string, unknown>,
   ) {
     super(message, 'WORKER_ERROR', 500, { workerName, ...details });
   }

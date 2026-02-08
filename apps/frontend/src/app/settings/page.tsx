@@ -1,77 +1,71 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { tradingAPI, type TradeSettings } from '@/lib/api'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { toast } from 'sonner'
+import { useState, useEffect } from 'react';
+import { tradingAPI, type TradeSettings } from '@/lib/api';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<TradeSettings[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState<string | null>(null)
+  const [settings, setSettings] = useState<TradeSettings[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
 
   const fetchSettings = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await tradingAPI.getSettings()
-      setSettings(data)
+      const data = await tradingAPI.getSettings();
+      setSettings(data);
     } catch (error) {
-      console.error('Error fetching settings:', error)
-      toast.error('Failed to load settings')
+      console.error('Error fetching settings:', error);
+      toast.error('Failed to load settings');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchSettings()
-  }, [])
+    fetchSettings();
+  }, []);
 
   const handleToggle = async (setting: TradeSettings) => {
-    setSaving(setting.id)
+    setSaving(setting.id);
     try {
-      const updated = await tradingAPI.toggleEnabled(setting.id)
-      setSettings(prev =>
-        prev.map(s => s.id === setting.id ? updated : s)
-      )
-      toast.success(`${setting.name} ${updated.enabled ? 'enabled' : 'disabled'}`)
+      const updated = await tradingAPI.toggleEnabled(setting.id);
+      setSettings((prev) => prev.map((s) => (s.id === setting.id ? updated : s)));
+      toast.success(`${setting.name} ${updated.enabled ? 'enabled' : 'disabled'}`);
     } catch (error) {
-      console.error('Error toggling setting:', error)
-      toast.error('Failed to update setting')
+      console.error('Error toggling setting:', error);
+      toast.error('Failed to update setting');
     } finally {
-      setSaving(null)
+      setSaving(null);
     }
-  }
+  };
 
   const handleUpdate = async (setting: TradeSettings) => {
-    setSaving(setting.id)
+    setSaving(setting.id);
     try {
-      const updated = await tradingAPI.updateSettings(setting.id, setting)
-      setSettings(prev =>
-        prev.map(s => s.id === setting.id ? updated : s)
-      )
-      toast.success(`${setting.name} updated successfully`)
+      const updated = await tradingAPI.updateSettings(setting.id, setting);
+      setSettings((prev) => prev.map((s) => (s.id === setting.id ? updated : s)));
+      toast.success(`${setting.name} updated successfully`);
     } catch (error) {
-      console.error('Error updating setting:', error)
-      toast.error('Failed to update setting')
+      console.error('Error updating setting:', error);
+      toast.error('Failed to update setting');
     } finally {
-      setSaving(null)
+      setSaving(null);
     }
-  }
+  };
 
   const handleInputChange = (
     setting: TradeSettings,
     field: keyof TradeSettings,
-    value: number | string
+    value: number | string,
   ) => {
-    const updated = { ...setting, [field]: value }
-    setSettings(prev =>
-      prev.map(s => s.id === setting.id ? updated : s)
-    )
+    const updated = { ...setting, [field]: value };
+    setSettings((prev) => prev.map((s) => (s.id === setting.id ? updated : s)));
     // Debounce save
-    setTimeout(() => handleUpdate(updated), 500)
-  }
+    setTimeout(() => handleUpdate(updated), 500);
+  };
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
@@ -87,15 +81,14 @@ export default function SettingsPage() {
       ) : (
         <div className="space-y-6">
           {settings.map((setting) => (
-            <div
-              key={setting.id}
-              className="rounded-lg border bg-card p-6"
-            >
+            <div key={setting.id} className="rounded-lg border bg-card p-6">
               <div className="mb-6 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">{setting.name}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {setting.name === 'default' ? 'Default trading configuration' : `${setting.name} strategy settings`}
+                    {setting.name === 'default'
+                      ? 'Default trading configuration'
+                      : `${setting.name} strategy settings`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -207,9 +200,7 @@ export default function SettingsPage() {
               </div>
 
               {saving === setting.id && (
-                <div className="mt-4 text-sm text-muted-foreground">
-                  Saving...
-                </div>
+                <div className="mt-4 text-sm text-muted-foreground">Saving...</div>
               )}
             </div>
           ))}
@@ -222,7 +213,9 @@ export default function SettingsPage() {
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <dt className="font-medium text-foreground">Max Slippage</dt>
-            <dd className="text-muted-foreground">Maximum acceptable price slippage when executing trades (0.1% - 10%)</dd>
+            <dd className="text-muted-foreground">
+              Maximum acceptable price slippage when executing trades (0.1% - 10%)
+            </dd>
           </div>
           <div>
             <dt className="font-medium text-foreground">Max Positions</dt>
@@ -230,18 +223,24 @@ export default function SettingsPage() {
           </div>
           <div>
             <dt className="font-medium text-foreground">Stop Loss</dt>
-            <dd className="text-muted-foreground">Percentage drop from entry price to trigger automatic sell (1% - 50%)</dd>
+            <dd className="text-muted-foreground">
+              Percentage drop from entry price to trigger automatic sell (1% - 50%)
+            </dd>
           </div>
           <div>
             <dt className="font-medium text-foreground">Take Profit</dt>
-            <dd className="text-muted-foreground">Percentage gain from entry price to trigger automatic sell (1% - 500%)</dd>
+            <dd className="text-muted-foreground">
+              Percentage gain from entry price to trigger automatic sell (1% - 500%)
+            </dd>
           </div>
           <div className="md:col-span-2">
             <dt className="font-medium text-foreground">Minimum Burn Amount</dt>
-            <dd className="text-muted-foreground">Minimum token burn amount to trigger a buy order (in tokens)</dd>
+            <dd className="text-muted-foreground">
+              Minimum token burn amount to trigger a buy order (in tokens)
+            </dd>
           </div>
         </dl>
       </div>
     </div>
-  )
+  );
 }

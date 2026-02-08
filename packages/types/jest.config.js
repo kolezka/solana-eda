@@ -6,11 +6,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/main.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/main.ts'],
   coverageDirectory: 'coverage',
   moduleNameMapper: {
     '@solana-eda/(.*)': '<rootDir>/../$1/src',
@@ -22,4 +18,4 @@ module.exports = {
       },
     },
   },
-}
+};

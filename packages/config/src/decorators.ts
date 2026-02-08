@@ -58,7 +58,9 @@ export function InjectableConfig() {
         // Resolve injected parameters
         for (const { parameterIndex, path } of injectedParameters) {
           if (!resolvedArgs[parameterIndex]) {
-            resolvedArgs[parameterIndex] = path ? configService.get(path) : configService.getConfig();
+            resolvedArgs[parameterIndex] = path
+              ? configService.get(path)
+              : configService.getConfig();
           }
         }
 
@@ -87,11 +89,7 @@ export function InjectableConfig() {
  * Environment-specific decorator
  */
 export function Environment(...environments: string[]) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const configService = getConfigService();
     const currentEnvironment = configService.get('app.environment');
@@ -111,11 +109,7 @@ export function Environment(...environments: string[]) {
  * Feature flag decorator
  */
 export function FeatureFlag(feature: keyof import('./config.schema').AppConfig['workers']) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const configService = getConfigService();
 

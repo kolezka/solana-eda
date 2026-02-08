@@ -31,7 +31,7 @@ export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
  */
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  options: Partial<RetryOptions> = {}
+  options: Partial<RetryOptions> = {},
 ): Promise<T> {
   const opts = { ...DEFAULT_RETRY_OPTIONS, ...options };
   let lastError: Error | undefined;
@@ -43,8 +43,8 @@ export async function retryWithBackoff<T>(
       lastError = error as Error;
 
       // Check if error is retryable
-      const isRetryable = opts.retryableErrors?.some(err =>
-        lastError!.message.includes(err) || lastError!.message.includes(err.toLowerCase())
+      const isRetryable = opts.retryableErrors?.some(
+        (err) => lastError!.message.includes(err) || lastError!.message.includes(err.toLowerCase()),
       );
 
       if (!isRetryable || attempt >= opts.maxAttempts) {
@@ -54,18 +54,21 @@ export async function retryWithBackoff<T>(
       // Calculate delay with exponential backoff
       const delay = Math.min(
         opts.baseDelay * Math.pow(opts.backoffMultiplier, attempt - 1),
-        opts.maxDelay
+        opts.maxDelay,
       );
 
       // Add some jitter to prevent thundering herd
       const jitter = Math.random() * 0.3 * delay;
       const finalDelay = delay + jitter;
 
-      console.debug(`[Retry] Attempt ${attempt}/${opts.maxAttempts} failed, retrying in ${finalDelay.toFixed(0)}ms:`, lastError.message);
+      console.debug(
+        `[Retry] Attempt ${attempt}/${opts.maxAttempts} failed, retrying in ${finalDelay.toFixed(0)}ms:`,
+        lastError.message,
+      );
 
       opts.onRetry?.(attempt, lastError);
 
-      await new Promise(resolve => setTimeout(resolve, finalDelay));
+      await new Promise((resolve) => setTimeout(resolve, finalDelay));
     }
   }
 
@@ -76,11 +79,7 @@ export async function retryWithBackoff<T>(
  * Decorator for automatic retry
  */
 export function Retry(options: Partial<RetryOptions> = {}) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

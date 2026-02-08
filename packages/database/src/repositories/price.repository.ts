@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 
 export class PriceRepository {
   constructor(private prisma: PrismaClient) {}
@@ -36,11 +36,7 @@ export class PriceRepository {
     });
   }
 
-  async findByTokenInRange(
-    token: string,
-    start: Date,
-    end: Date,
-  ) {
+  async findByTokenInRange(token: string, start: Date, end: Date) {
     return await this.prisma.priceRecord.findMany({
       where: {
         token,

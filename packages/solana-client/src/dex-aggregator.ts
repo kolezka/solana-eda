@@ -22,7 +22,7 @@ export class DEXAggregator {
     config?: {
       enabledDEXes?: string[];
       jupiterApiUrl?: string;
-    }
+    },
   ) {
     this.redis = new Redis(redisUrl);
     this.clients = new Map();
@@ -40,7 +40,9 @@ export class DEXAggregator {
       console.error('[DEXAggregator] Error initializing DEX clients:', error);
     }
 
-    console.log(`[DEXAggregator] Initialized with DEXes: ${Array.from(this.enabledDEXes).join(', ')}`);
+    console.log(
+      `[DEXAggregator] Initialized with DEXes: ${Array.from(this.enabledDEXes).join(', ')}`,
+    );
     console.log(`[DEXAggregator] Available clients: ${Array.from(this.clients.keys()).join(', ')}`);
   }
 
@@ -50,7 +52,7 @@ export class DEXAggregator {
   async getBestQuote(
     inputMint: PublicKey,
     outputMint: PublicKey,
-    amount: bigint
+    amount: bigint,
   ): Promise<BestQuote> {
     const quotes: Array<{
       dex: string;
@@ -70,7 +72,7 @@ export class DEXAggregator {
         const quote = await client.getQuote(
           inputMint.toString(),
           outputMint.toString(),
-          amount.toString()
+          amount.toString(),
         );
 
         return {
@@ -120,7 +122,7 @@ export class DEXAggregator {
       outputMint.toString(),
       amount.toString(),
       quotes,
-      best.dex
+      best.dex,
     );
 
     return best.quote;
@@ -129,10 +131,7 @@ export class DEXAggregator {
   /**
    * Execute a swap using the best quote
    */
-  async executeBestSwap(
-    bestQuote: BestQuote,
-    maxSlippageBps: number = 50
-  ): Promise<SwapResult> {
+  async executeBestSwap(bestQuote: BestQuote, maxSlippageBps: number = 50): Promise<SwapResult> {
     const dex = bestQuote.dex;
     console.log(`[DEXAggregator] Executing swap on ${dex}...`);
 
@@ -169,7 +168,7 @@ export class DEXAggregator {
   async getAllQuotes(
     inputMint: PublicKey,
     outputMint: PublicKey,
-    amount: bigint
+    amount: bigint,
   ): Promise<Array<{ dex: string; quote: BestQuote }>> {
     const quotes: Array<{ dex: string; quote: BestQuote }> = [];
 
@@ -183,7 +182,7 @@ export class DEXAggregator {
         const quote = await client.getQuote(
           inputMint.toString(),
           outputMint.toString(),
-          amount.toString()
+          amount.toString(),
         );
 
         return {
@@ -245,7 +244,7 @@ export class DEXAggregator {
       outAmount: bigint;
       priceImpactPct: number;
     }>,
-    selectedDEX: string
+    selectedDEX: string,
   ) {
     try {
       // Publish event to Redis channel

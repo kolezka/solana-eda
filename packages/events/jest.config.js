@@ -4,19 +4,18 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      tsconfig: {
-        verbatimModuleSyntax: false,
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          verbatimModuleSyntax: false,
+        },
       },
-    }],
+    ],
   },
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/main.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/main.ts'],
   coverageDirectory: 'coverage',
   moduleNameMapper: {
     '@solana-eda/(.*)': '<rootDir>/../$1/src',
   },
-}
+};

@@ -1,6 +1,11 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import { SolanaConnectionManager, AccountWatcher, PoolParser, ParsedPoolData } from '@solana-eda/solana-client';
+import {
+  SolanaConnectionManager,
+  AccountWatcher,
+  PoolParser,
+  ParsedPoolData,
+} from '@solana-eda/solana-client';
 import { getPrismaClient, LiquidityPoolRepository } from '@solana-eda/database';
 import { createLiquidityEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
@@ -119,17 +124,21 @@ class LiquidityMonitorWorker {
   }
 
   private async initializePoolStates() {
-    console.log(`[LiquidityMonitor] Initializing pool states for ${POOLS_TO_MONITOR.length} pools...`);
+    console.log(
+      `[LiquidityMonitor] Initializing pool states for ${POOLS_TO_MONITOR.length} pools...`,
+    );
 
     for (const poolAddress of POOLS_TO_MONITOR) {
       try {
         // Fetch current pool account data
-        const accountInfo = await this.connection.getAccountInfo(new (require('@solana/web3.js')).PublicKey(poolAddress));
+        const accountInfo = await this.connection.getAccountInfo(
+          new (require('@solana/web3.js').PublicKey)(poolAddress),
+        );
 
         if (accountInfo) {
           const parsedPool = this.poolParser.parsePool(
-            new (require('@solana/web3.js')).PublicKey(poolAddress),
-            accountInfo
+            new (require('@solana/web3.js').PublicKey)(poolAddress),
+            accountInfo,
           );
 
           if (parsedPool) {
@@ -164,7 +173,9 @@ class LiquidityMonitorWorker {
               volume24h: state.volume24h,
             });
 
-            console.log(`[LiquidityMonitor] Initialized pool ${poolAddress}: ${parsedPool.tokenA.symbol}/${parsedPool.tokenB.symbol} ($${parsedPool.tvl.toFixed(2)})`);
+            console.log(
+              `[LiquidityMonitor] Initialized pool ${poolAddress}: ${parsedPool.tokenA.symbol}/${parsedPool.tokenB.symbol} ($${parsedPool.tvl.toFixed(2)})`,
+            );
             this.metrics.poolsMonitored++;
           } else {
             console.warn(`[LiquidityMonitor] Could not parse pool ${poolAddress}`);
@@ -211,8 +222,8 @@ class LiquidityMonitorWorker {
 
       // Parse pool data using real parser
       const parsedPool = this.poolParser.parsePool(
-        new (require('@solana/web3.js')).PublicKey(poolAddress),
-        accountInfo
+        new (require('@solana/web3.js').PublicKey)(poolAddress),
+        accountInfo,
       );
 
       if (!parsedPool) {
@@ -221,13 +232,15 @@ class LiquidityMonitorWorker {
       }
 
       // Calculate change percentages
-      const tvlChangePercent = currentState.oldTvl > 0
-        ? ((parsedPool.tvl - currentState.oldTvl) / currentState.oldTvl) * 100
-        : 0;
+      const tvlChangePercent =
+        currentState.oldTvl > 0
+          ? ((parsedPool.tvl - currentState.oldTvl) / currentState.oldTvl) * 100
+          : 0;
 
-      const priceChangePercent = currentState.oldPrice > 0
-        ? ((parsedPool.price - currentState.oldPrice) / currentState.oldPrice) * 100
-        : 0;
+      const priceChangePercent =
+        currentState.oldPrice > 0
+          ? ((parsedPool.price - currentState.oldPrice) / currentState.oldPrice) * 100
+          : 0;
 
       // Update state
       currentState.oldTvl = currentState.newTvl;
@@ -256,7 +269,9 @@ class LiquidityMonitorWorker {
 
       // Emit event if significant change
       if (Math.abs(tvlChangePercent) >= CHANGE_THRESHOLD) {
-        console.log(`[LiquidityMonitor] Significant liquidity change for ${poolAddress}: ${tvlChangePercent.toFixed(2)}%`);
+        console.log(
+          `[LiquidityMonitor] Significant liquidity change for ${poolAddress}: ${tvlChangePercent.toFixed(2)}%`,
+        );
 
         const event = createLiquidityEvent({
           poolAddress,
@@ -277,7 +292,6 @@ class LiquidityMonitorWorker {
       if (this.metrics.eventsProcessed % 10 === 0) {
         await this.updateWorkerStatus('RUNNING');
       }
-
     } catch (error) {
       console.error(`[LiquidityMonitor] Error in handlePoolChange:`, error);
       throw error;
@@ -286,7 +300,7 @@ class LiquidityMonitorWorker {
 
   private async keepAlive() {
     while (this.running) {
-      await new Promise(resolve => setTimeout(resolve, 60000));
+      await new Promise((resolve) => setTimeout(resolve, 60000));
 
       // Periodic pool state refresh to catch any missed updates
       await this.refreshPoolStates();
@@ -302,7 +316,7 @@ class LiquidityMonitorWorker {
     for (const poolAddress of POOLS_TO_MONITOR) {
       try {
         const accountInfo = await this.connection.getAccountInfo(
-          new (require('@solana/web3.js')).PublicKey(poolAddress)
+          new (require('@solana/web3.js').PublicKey)(poolAddress),
         );
 
         if (accountInfo) {

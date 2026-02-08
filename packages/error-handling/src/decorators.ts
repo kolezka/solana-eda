@@ -5,15 +5,8 @@ import { formatErrorForLogging } from './errors';
 /**
  * Decorator to add Dead Letter Queue functionality
  */
-export function WithDLQ(
-  dlq: DeadLetterQueue,
-  metadata?: Record<string, unknown>
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+export function WithDLQ(dlq: DeadLetterQueue, metadata?: Record<string, unknown>) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -37,14 +30,8 @@ export function WithDLQ(
 /**
  * Decorator to add Circuit Breaker functionality
  */
-export function WithCircuitBreaker(
-  circuitBreaker: CircuitBreaker
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+export function WithCircuitBreaker(circuitBreaker: CircuitBreaker) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -59,11 +46,7 @@ export function WithCircuitBreaker(
  * Decorator for timeout
  */
 export function Timeout(ms: number) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -87,11 +70,7 @@ export function Resilient(options: {
   timeout?: number;
   metadata?: Record<string, unknown>;
 }) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     let method = descriptor.value;
 
     // Apply timeout first
@@ -101,7 +80,9 @@ export function Resilient(options: {
 
     // Apply circuit breaker
     if (options.circuitBreaker) {
-      method = WithCircuitBreaker(options.circuitBreaker)(target, propertyKey, { value: method }).value;
+      method = WithCircuitBreaker(options.circuitBreaker)(target, propertyKey, {
+        value: method,
+      }).value;
     }
 
     // Apply DLQ

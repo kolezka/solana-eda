@@ -1,4 +1,10 @@
-import { Connection, PublicKey, Transaction, ComputeBudgetProgram, SystemProgram } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  ComputeBudgetProgram,
+  SystemProgram,
+} from '@solana/web3.js';
 import type { AccountInfo, Context } from '@solana/web3.js';
 
 export class SolanaConnectionManager {
@@ -7,7 +13,7 @@ export class SolanaConnectionManager {
 
   constructor(
     rpcUrl: string,
-    private wsUrl?: string
+    private wsUrl?: string,
   ) {
     this.connection = new Connection(rpcUrl);
     if (wsUrl) {
@@ -33,7 +39,7 @@ export class SolanaConnectionManager {
   onAccountChange(
     publicKey: PublicKey,
     callback: (accountInfo: AccountInfo<Buffer> | null, context: Context) => void,
-    commitment?: 'confirmed' | 'finalized' | 'processed'
+    commitment?: 'confirmed' | 'finalized' | 'processed',
   ): number {
     const conn = this.wsConnection || this.connection;
     return conn.onAccountChange(publicKey, callback, commitment);
@@ -53,7 +59,7 @@ export class SolanaConnectionManager {
   onLogs(
     filter: any,
     callback: (logs: any, context: any) => void,
-    commitment?: 'confirmed' | 'finalized' | 'processed'
+    commitment?: 'confirmed' | 'finalized' | 'processed',
   ): number {
     const conn = this.wsConnection || this.connection;
     return conn.onLogs(filter, callback, commitment);
@@ -100,7 +106,7 @@ export class SolanaConnectionManager {
    */
   async sendRawTransaction(
     transaction: Buffer,
-    options?: { skipPreflight?: boolean; maxRetries?: number }
+    options?: { skipPreflight?: boolean; maxRetries?: number },
   ): Promise<string> {
     return await this.connection.sendRawTransaction(transaction, options);
   }
@@ -122,7 +128,9 @@ export class SolanaConnectionManager {
   /**
    * Get token account balance
    */
-  async getTokenAccountBalance(tokenAccount: PublicKey): Promise<{ amount: string; decimals: number; uiAmount: number }> {
+  async getTokenAccountBalance(
+    tokenAccount: PublicKey,
+  ): Promise<{ amount: string; decimals: number; uiAmount: number }> {
     const response = await this.connection.getTokenAccountBalance(tokenAccount);
     return {
       amount: response.value.amount,

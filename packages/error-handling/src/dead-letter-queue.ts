@@ -28,7 +28,7 @@ export class DeadLetterQueue {
       keyPrefix?: string;
       maxRetries?: number;
       retentionDays?: number;
-    } = {}
+    } = {},
   ) {
     this.redis = redis;
     this.keyPrefix = options.keyPrefix || 'dlq';
@@ -96,7 +96,7 @@ export class DeadLetterQueue {
    */
   async retry(
     id: string,
-    retryFn: (event: any) => Promise<void>
+    retryFn: (event: any) => Promise<void>,
   ): Promise<{ success: boolean; error?: string }> {
     const dlqEvent = await this.get(id);
 

@@ -4,8 +4,8 @@ import { EventsModule } from './modules/events/events.module';
 import { WorkersModule } from './modules/workers/workers.module';
 import { TradingModule } from './modules/trading/trading.module';
 import { PositionsModule } from './modules/positions/positions.module';
-import { DatabaseModule } from './database/database.module';
 import { RedisModule } from './redis/redis.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -13,12 +13,13 @@ import { RedisModule } from './redis/redis.module';
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
     }),
-    DatabaseModule,
+    PrismaModule,
     RedisModule,
     EventsModule,
     WorkersModule,
     TradingModule,
     PositionsModule,
   ],
+  providers: [],
 })
 export class AppModule {}

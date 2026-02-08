@@ -4,8 +4,8 @@
  */
 
 export enum CircuitState {
-  CLOSED = 'CLOSED',     // Normal operation
-  OPEN = 'OPEN',         // Circuit is open, rejecting requests
+  CLOSED = 'CLOSED', // Normal operation
+  OPEN = 'OPEN', // Circuit is open, rejecting requests
   HALF_OPEN = 'HALF_OPEN', // Testing if service has recovered
 }
 
@@ -45,7 +45,7 @@ export class CircuitBreaker {
         this.transitionTo(CircuitState.HALF_OPEN);
       } else {
         throw new CircuitBreakerOpenError(
-          `Circuit breaker is OPEN. Last failure: ${new Date(this.lastFailureTime).toISOString()}`
+          `Circuit breaker is OPEN. Last failure: ${new Date(this.lastFailureTime).toISOString()}`,
         );
       }
     }
@@ -65,8 +65,10 @@ export class CircuitBreaker {
       this.successCount++;
       this.halfOpenAttempts++;
 
-      if (this.successCount >= this.options.successThreshold ||
-          this.halfOpenAttempts >= this.options.halfOpenAttempts) {
+      if (
+        this.successCount >= this.options.successThreshold ||
+        this.halfOpenAttempts >= this.options.halfOpenAttempts
+      ) {
         this.transitionTo(CircuitState.CLOSED);
         this.successCount = 0;
         this.halfOpenAttempts = 0;
@@ -155,7 +157,7 @@ export class CircuitBreakerRegistry {
     if (name) {
       this.breakers.get(name)?.reset();
     } else {
-      this.breakers.forEach(b => b.reset());
+      this.breakers.forEach((b) => b.reset());
     }
   }
 }

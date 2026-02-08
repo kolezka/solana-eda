@@ -25,9 +25,7 @@ export class RateLimiter {
     const now = Date.now();
 
     // Remove old requests outside the window
-    this.requests = this.requests.filter(
-      timestamp => now - timestamp < this.windowMs
-    );
+    this.requests = this.requests.filter((timestamp) => now - timestamp < this.windowMs);
 
     // Check if we've hit the limit
     if (this.requests.length >= this.maxRequests) {
@@ -37,7 +35,7 @@ export class RateLimiter {
 
         if (waitTime > 0) {
           console.debug(`[RateLimiter] Rate limit reached, waiting ${waitTime}ms`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
     }
@@ -51,17 +49,16 @@ export class RateLimiter {
    */
   getStats() {
     const now = Date.now();
-    const recentRequests = this.requests.filter(
-      timestamp => now - timestamp < this.windowMs
-    );
+    const recentRequests = this.requests.filter((timestamp) => now - timestamp < this.windowMs);
 
     return {
       used: recentRequests.length,
       limit: this.maxRequests,
       available: this.maxRequests - recentRequests.length,
-      resetTime: recentRequests.length > 0 && recentRequests[0] !== undefined
-        ? recentRequests[0] + this.windowMs
-        : now,
+      resetTime:
+        recentRequests.length > 0 && recentRequests[0] !== undefined
+          ? recentRequests[0] + this.windowMs
+          : now,
     };
   }
 
@@ -91,5 +88,5 @@ export const RPC_RATE_LIMITS: Record<string, RateLimiterOptions> = {
   'rpc.ankr.com': { maxRequests: 50, windowMs: 1000 },
 
   // Genesis (default)
-  'default': { maxRequests: 50, windowMs: 1000 },
+  default: { maxRequests: 50, windowMs: 1000 },
 };

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 
 export class TradeSettingsRepository {
   constructor(private prisma: PrismaClient) {}
@@ -17,8 +17,8 @@ export class TradeSettingsRepository {
         ...data,
         maxSlippage: data.maxSlippage || 0.03,
         maxPositions: data.maxPositions || 5,
-        stopLossPercent: data.stopLossPercent || 0.10,
-        takeProfitPercent: data.takeProfitPercent || 0.50,
+        stopLossPercent: data.stopLossPercent || 0.1,
+        takeProfitPercent: data.takeProfitPercent || 0.5,
         minBurnAmount: data.minBurnAmount || 1000,
       },
     });
@@ -46,28 +46,34 @@ export class TradeSettingsRepository {
     return await this.prisma.tradeSettings.findMany();
   }
 
-  async update(id: string, data: Partial<{
-    enabled: boolean;
-    maxSlippage: number;
-    maxPositions: number;
-    stopLossPercent: number;
-    takeProfitPercent: number;
-    minBurnAmount: number;
-  }>) {
+  async update(
+    id: string,
+    data: Partial<{
+      enabled: boolean;
+      maxSlippage: number;
+      maxPositions: number;
+      stopLossPercent: number;
+      takeProfitPercent: number;
+      minBurnAmount: number;
+    }>,
+  ) {
     return await this.prisma.tradeSettings.update({
       where: { id },
       data: { ...data, updatedAt: new Date() },
     });
   }
 
-  async updateByName(name: string, data: Partial<{
-    enabled: boolean;
-    maxSlippage: number;
-    maxPositions: number;
-    stopLossPercent: number;
-    takeProfitPercent: number;
-    minBurnAmount: number;
-  }>) {
+  async updateByName(
+    name: string,
+    data: Partial<{
+      enabled: boolean;
+      maxSlippage: number;
+      maxPositions: number;
+      stopLossPercent: number;
+      takeProfitPercent: number;
+      minBurnAmount: number;
+    }>,
+  ) {
     return await this.prisma.tradeSettings.update({
       where: { name },
       data: { ...data, updatedAt: new Date() },

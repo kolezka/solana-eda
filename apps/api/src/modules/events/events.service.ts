@@ -2,7 +2,13 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { validateEvent, CHANNELS } from '@solana-eda/events';
 import { PrismaClient } from '@prisma/client';
-import { BurnEventRepository, LiquidityPoolRepository, TradeRepository, PositionRepository, PriceRepository } from '@solana-eda/database';
+import {
+  BurnEventRepository,
+  LiquidityPoolRepository,
+  TradeRepository,
+  PositionRepository,
+  PriceRepository,
+} from '@solana-eda/database';
 
 @Injectable()
 export class EventsService {
@@ -14,7 +20,7 @@ export class EventsService {
 
   constructor(
     @Inject('REDIS') private redis: Redis,
-    @Inject('PRISMA') private prisma: PrismaClient
+    @Inject('PRISMA') private prisma: PrismaClient,
   ) {
     this.burnEventRepo = new BurnEventRepository(prisma);
     this.liquidityPoolRepo = new LiquidityPoolRepository(prisma);
@@ -41,7 +47,7 @@ export class EventsService {
 
   async getBurnEvents(limit: number = 50) {
     const events = await this.burnEventRepo.findRecent(limit);
-    return events.map(event => ({
+    return events.map((event) => ({
       id: event.id,
       txSignature: event.txSignature,
       token: event.token,
@@ -54,7 +60,7 @@ export class EventsService {
 
   async getLiquidityEvents(limit: number = 50) {
     const pools = await this.liquidityPoolRepo.findAll(limit);
-    return pools.map(pool => ({
+    return pools.map((pool) => ({
       id: pool.id,
       address: pool.address,
       tokenA: pool.tokenA,
@@ -68,7 +74,7 @@ export class EventsService {
 
   async getTradeEvents(limit: number = 50) {
     const trades = await this.tradeRepo.findRecent(limit);
-    return trades.map(trade => ({
+    return trades.map((trade) => ({
       id: trade.id,
       positionId: trade.positionId,
       type: trade.type,
@@ -77,17 +83,19 @@ export class EventsService {
       signature: trade.signature,
       slippage: Number(trade.slippage),
       timestamp: trade.timestamp.toISOString(),
-      position: trade.position ? {
-        id: trade.position.id,
-        token: trade.position.token,
-        status: trade.position.status,
-      } : null,
+      position: trade.position
+        ? {
+            id: trade.position.id,
+            token: trade.position.token,
+            status: trade.position.status,
+          }
+        : null,
     }));
   }
 
   async getPositionEvents(limit: number = 50) {
     const positions = await this.positionRepo.findOpenPositions();
-    return positions.slice(0, limit).map(position => ({
+    return positions.slice(0, limit).map((position) => ({
       id: position.id,
       token: position.token,
       amount: position.amount.toString(),
@@ -99,7 +107,7 @@ export class EventsService {
       closedAt: position.closedAt?.toISOString(),
       stopLoss: position.stopLoss?.toString(),
       takeProfit: position.takeProfit?.toString(),
-      trades: position.trades.map(trade => ({
+      trades: position.trades.map((trade) => ({
         id: trade.id,
         type: trade.type,
         amount: trade.amount.toString(),
@@ -134,7 +142,10 @@ export class EventsService {
       for (const tokenMint of trackedTokens.slice(0, 10)) {
         // Limit to 10 tokens to avoid too many queries
         try {
-          const tokenPrices = await this.priceRepo.findByToken(tokenMint.trim(), Math.ceil(limit / trackedTokens.length));
+          const tokenPrices = await this.priceRepo.findByToken(
+            tokenMint.trim(),
+            Math.ceil(limit / trackedTokens.length),
+          );
           allPrices.push(...tokenPrices);
         } catch (error) {
           console.error(`Error fetching prices for ${tokenMint}:`, error);
@@ -146,7 +157,7 @@ export class EventsService {
       priceRecords = allPrices.slice(0, limit);
     }
 
-    return priceRecords.map(record => ({
+    return priceRecords.map((record) => ({
       id: record.id,
       token: record.token,
       price: record.price.toString(),

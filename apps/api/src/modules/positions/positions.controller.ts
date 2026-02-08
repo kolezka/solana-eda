@@ -187,7 +187,7 @@ export class PositionsController {
       type: 'object',
       required: ['exitPrice', 'reason'],
       properties: {
-        exitPrice: { type: 'number', example: 155.50 },
+        exitPrice: { type: 'number', example: 155.5 },
         reason: {
           type: 'string',
           enum: ['TAKE_PROFIT', 'STOP_LOSS', 'MANUAL', 'TIMEOUT'],
@@ -203,7 +203,7 @@ export class PositionsController {
   })
   async closePosition(
     @Param('id') id: string,
-    @Body() body: { exitPrice: number; reason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT' }
+    @Body() body: { exitPrice: number; reason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT' },
   ) {
     return await this.positionsService.closePosition(id, body.exitPrice, body.reason);
   }

@@ -23,7 +23,10 @@ export class ConfigService {
    * Load configuration from environment and defaults
    */
   private loadConfig(): AppConfig {
-    const environment = (getOptionalEnv('NODE_ENV', 'development') || 'development') as 'development' | 'staging' | 'production';
+    const environment = (getOptionalEnv('NODE_ENV', 'development') || 'development') as
+      | 'development'
+      | 'staging'
+      | 'production';
 
     // Start with defaults
     let config: any = { ...DEFAULT_CONFIG };
@@ -59,7 +62,10 @@ export class ConfigService {
         ...config.database,
         url: getRequiredEnv('DATABASE_URL'),
         poolSize: getNumberEnv('DATABASE_POOL_SIZE', config.database?.poolSize || 10),
-        connectionTimeout: getNumberEnv('DATABASE_CONNECTION_TIMEOUT', config.database?.connectionTimeout || 30000),
+        connectionTimeout: getNumberEnv(
+          'DATABASE_CONNECTION_TIMEOUT',
+          config.database?.connectionTimeout || 30000,
+        ),
       },
       redis: {
         ...config.redis,
@@ -69,9 +75,15 @@ export class ConfigService {
       },
       solana: {
         ...config.solana,
-        rpcUrl: getOptionalEnv('SOLANA_RPC_URL', config.solana?.rpcUrl || 'https://api.mainnet-beta.solana.com'),
+        rpcUrl: getOptionalEnv(
+          'SOLANA_RPC_URL',
+          config.solana?.rpcUrl || 'https://api.mainnet-beta.solana.com',
+        ),
         wsUrl: getOptionalEnv('SOLANA_WS_URL', config.solana?.wsUrl),
-        commitment: getOptionalEnv('SOLANA_COMMITMENT', config.solana?.commitment || 'confirmed') as any,
+        commitment: getOptionalEnv(
+          'SOLANA_COMMITMENT',
+          config.solana?.commitment || 'confirmed',
+        ) as any,
         rpcTimeout: getNumberEnv('SOLANA_RPC_TIMEOUT', config.solana?.rpcTimeout || 30000),
         fallbackUrls: getArrayEnv('SOLANA_FALLBACK_URLS', config.solana?.fallbackUrls || []),
       },
@@ -79,30 +91,70 @@ export class ConfigService {
         ...config.workers,
         liquidityMonitor: {
           ...config.workers?.liquidityMonitor,
-          enabled: getBoolEnv('LIQUIDITY_MONITOR_ENABLED', config.workers?.liquidityMonitor?.enabled ?? true),
+          enabled: getBoolEnv(
+            'LIQUIDITY_MONITOR_ENABLED',
+            config.workers?.liquidityMonitor?.enabled ?? true,
+          ),
           pools: getArrayEnv('MONITORED_POOLS', config.workers?.liquidityMonitor?.pools || []),
-          changeThreshold: getNumberEnv('CHANGE_THRESHOLD', config.workers?.liquidityMonitor?.changeThreshold || 5),
-          updateInterval: getNumberEnv('LIQUIDITY_UPDATE_INTERVAL', config.workers?.liquidityMonitor?.updateInterval || 60000),
+          changeThreshold: getNumberEnv(
+            'CHANGE_THRESHOLD',
+            config.workers?.liquidityMonitor?.changeThreshold || 5,
+          ),
+          updateInterval: getNumberEnv(
+            'LIQUIDITY_UPDATE_INTERVAL',
+            config.workers?.liquidityMonitor?.updateInterval || 60000,
+          ),
         },
         burnDetector: {
           ...config.workers?.burnDetector,
-          enabled: getBoolEnv('BURN_DETECTOR_ENABLED', config.workers?.burnDetector?.enabled ?? true),
-          minBurnAmount: getNumberEnv('MIN_BURN_THRESHOLD', config.workers?.burnDetector?.minBurnAmount || 1000000),
-          duplicateWindow: getNumberEnv('DUPLICATE_WINDOW', config.workers?.burnDetector?.duplicateWindow || 300000),
+          enabled: getBoolEnv(
+            'BURN_DETECTOR_ENABLED',
+            config.workers?.burnDetector?.enabled ?? true,
+          ),
+          minBurnAmount: getNumberEnv(
+            'MIN_BURN_THRESHOLD',
+            config.workers?.burnDetector?.minBurnAmount || 1000000,
+          ),
+          duplicateWindow: getNumberEnv(
+            'DUPLICATE_WINDOW',
+            config.workers?.burnDetector?.duplicateWindow || 300000,
+          ),
         },
         tradingBot: {
           ...config.workers?.tradingBot,
           enabled: getBoolEnv('TRADING_BOT_ENABLED', config.workers?.tradingBot?.enabled ?? false),
           walletPrivateKey: process.env.TRADING_PRIVATE_KEY,
-          maxPositions: getNumberEnv('MAX_POSITIONS', config.workers?.tradingBot?.maxPositions || 5),
-          maxSlippage: getNumberEnv('MAX_SLIPPAGE', config.workers?.tradingBot?.maxSlippage || 0.03) / 100,
-          stopLossPercent: getNumberEnv('STOP_LOSS_PERCENT', config.workers?.tradingBot?.stopLossPercent || 10) / 100,
-          takeProfitPercent: getNumberEnv('TAKE_PROFIT_PERCENT', config.workers?.tradingBot?.takeProfitPercent || 50) / 100,
-          minBurnAmount: getNumberEnv('MIN_BURN_AMOUNT', config.workers?.tradingBot?.minBurnAmount || 1000000),
-          positionSizing: getOptionalEnv('POSITION_SIZING', config.workers?.tradingBot?.positionSizing || 'RISK_BASED') as any,
-          maxPositionSize: getNumberEnv('MAX_POSITION_SIZE', config.workers?.tradingBot?.maxPositionSize || 1000),
-          portfolioPercent: getNumberEnv('PORTFOLIO_PERCENT', config.workers?.tradingBot?.portfolioPercent || 5) / 100,
-          riskPerTrade: getNumberEnv('RISK_PER_TRADE', config.workers?.tradingBot?.riskPerTrade || 1) / 100,
+          maxPositions: getNumberEnv(
+            'MAX_POSITIONS',
+            config.workers?.tradingBot?.maxPositions || 5,
+          ),
+          maxSlippage:
+            getNumberEnv('MAX_SLIPPAGE', config.workers?.tradingBot?.maxSlippage || 0.03) / 100,
+          stopLossPercent:
+            getNumberEnv('STOP_LOSS_PERCENT', config.workers?.tradingBot?.stopLossPercent || 10) /
+            100,
+          takeProfitPercent:
+            getNumberEnv(
+              'TAKE_PROFIT_PERCENT',
+              config.workers?.tradingBot?.takeProfitPercent || 50,
+            ) / 100,
+          minBurnAmount: getNumberEnv(
+            'MIN_BURN_AMOUNT',
+            config.workers?.tradingBot?.minBurnAmount || 1000000,
+          ),
+          positionSizing: getOptionalEnv(
+            'POSITION_SIZING',
+            config.workers?.tradingBot?.positionSizing || 'RISK_BASED',
+          ) as any,
+          maxPositionSize: getNumberEnv(
+            'MAX_POSITION_SIZE',
+            config.workers?.tradingBot?.maxPositionSize || 1000,
+          ),
+          portfolioPercent:
+            getNumberEnv('PORTFOLIO_PERCENT', config.workers?.tradingBot?.portfolioPercent || 5) /
+            100,
+          riskPerTrade:
+            getNumberEnv('RISK_PER_TRADE', config.workers?.tradingBot?.riskPerTrade || 1) / 100,
         },
       },
       monitoring: {
@@ -116,22 +168,40 @@ export class ConfigService {
         },
         healthCheck: {
           ...config.monitoring?.healthCheck,
-          enabled: getBoolEnv('HEALTH_CHECK_ENABLED', config.monitoring?.healthCheck?.enabled ?? true),
-          interval: getNumberEnv('HEALTH_CHECK_INTERVAL', config.monitoring?.healthCheck?.interval || 30000),
+          enabled: getBoolEnv(
+            'HEALTH_CHECK_ENABLED',
+            config.monitoring?.healthCheck?.enabled ?? true,
+          ),
+          interval: getNumberEnv(
+            'HEALTH_CHECK_INTERVAL',
+            config.monitoring?.healthCheck?.interval || 30000,
+          ),
         },
       },
       security: {
         ...config.security,
         rateLimiting: {
           ...config.security?.rateLimiting,
-          enabled: getBoolEnv('RATE_LIMITING_ENABLED', config.security?.rateLimiting?.enabled ?? true),
-          maxRequests: getNumberEnv('RATE_LIMIT_MAX_REQUESTS', config.security?.rateLimiting?.maxRequests || 100),
-          windowMs: getNumberEnv('RATE_LIMIT_WINDOW_MS', config.security?.rateLimiting?.windowMs || 60000),
+          enabled: getBoolEnv(
+            'RATE_LIMITING_ENABLED',
+            config.security?.rateLimiting?.enabled ?? true,
+          ),
+          maxRequests: getNumberEnv(
+            'RATE_LIMIT_MAX_REQUESTS',
+            config.security?.rateLimiting?.maxRequests || 100,
+          ),
+          windowMs: getNumberEnv(
+            'RATE_LIMIT_WINDOW_MS',
+            config.security?.rateLimiting?.windowMs || 60000,
+          ),
         },
         cors: {
           ...config.security?.cors,
           enabled: getBoolEnv('CORS_ENABLED', config.security?.cors?.enabled ?? true),
-          origins: getArrayEnv('CORS_ORIGINS', config.security?.cors?.origins || ['http://localhost:3000']),
+          origins: getArrayEnv(
+            'CORS_ORIGINS',
+            config.security?.cors?.origins || ['http://localhost:3000'],
+          ),
         },
       },
     };
@@ -148,7 +218,9 @@ export class ConfigService {
 
     // Validate trading bot has private key if enabled
     if (config.workers?.tradingBot?.enabled && !config.workers?.tradingBot?.walletPrivateKey) {
-      console.warn('[Config] Trading bot is enabled but TRADING_PRIVATE_KEY is not set. A new wallet will be generated.');
+      console.warn(
+        '[Config] Trading bot is enabled but TRADING_PRIVATE_KEY is not set. A new wallet will be generated.',
+      );
     }
 
     // Validate URLs
@@ -194,7 +266,7 @@ export class ConfigService {
     const output = { ...target };
 
     if (this.isObject(target) && this.isObject(source)) {
-      Object.keys(source).forEach(key => {
+      Object.keys(source).forEach((key) => {
         if (this.isObject(source[key])) {
           if (!(key in target)) {
             Object.assign(output, { [key]: source[key] });

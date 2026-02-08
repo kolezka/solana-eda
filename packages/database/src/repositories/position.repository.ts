@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 
 export class PositionRepository {
   constructor(private prisma: PrismaClient) {}
@@ -13,24 +13,26 @@ export class PositionRepository {
     takeProfit?: number;
   }) {
     return await this.prisma.position.create({
-      data: data.accountId ? {
-        token: data.token,
-        amount: data.amount,
-        entryPrice: data.entryPrice,
-        currentPrice: data.currentPrice,
-        stopLoss: data.stopLoss,
-        takeProfit: data.takeProfit,
-        accountId: data.accountId,
-        status: 'OPEN',
-      } : {
-        token: data.token,
-        amount: data.amount,
-        entryPrice: data.entryPrice,
-        currentPrice: data.currentPrice,
-        stopLoss: data.stopLoss,
-        takeProfit: data.takeProfit,
-        status: 'OPEN',
-      },
+      data: data.accountId
+        ? {
+            token: data.token,
+            amount: data.amount,
+            entryPrice: data.entryPrice,
+            currentPrice: data.currentPrice,
+            stopLoss: data.stopLoss,
+            takeProfit: data.takeProfit,
+            accountId: data.accountId,
+            status: 'OPEN',
+          }
+        : {
+            token: data.token,
+            amount: data.amount,
+            entryPrice: data.entryPrice,
+            currentPrice: data.currentPrice,
+            stopLoss: data.stopLoss,
+            takeProfit: data.takeProfit,
+            status: 'OPEN',
+          },
       include: { trades: true },
     });
   }
@@ -86,7 +88,7 @@ export class PositionRepository {
   async closePosition(
     id: string,
     exitPrice: number,
-    closeReason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT'
+    closeReason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT',
   ) {
     return await this.prisma.position.update({
       where: { id },
