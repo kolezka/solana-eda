@@ -1,20 +1,11 @@
 {
   "name": "solana-eda",
-  "version": "1.0.0",
   "private": true,
-  "description": "Solana EDA Trading Bot with Real-time Monitoring",
   "scripts": {
-    "setup": "./setup.sh",
-    "dev": "turbo run dev --parallel",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "lint": "turbo run lint",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "db:generate": "pnpm --filter @solana-eda/database prisma generate",
-    "db:push": "pnpm --filter @solana-eda/database prisma db push",
-    "db:migrate": "pnpm --filter @solana-eda/database prisma migrate dev",
-    "db:studio": "pnpm --filter @solana-eda/database prisma studio"
+    "api": "pnpm --filter @solana-eda/api",
+    "db": "pnpm --filter @solana-eda/database",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
