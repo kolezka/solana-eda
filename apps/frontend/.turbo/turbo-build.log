@@ -1,0 +1,34 @@
+
+> frontend@1.0.0 build /Users/me/Development/solana-eda/apps/frontend
+> next build
+
+   ▲ Next.js 14.1.0
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/8) ...
+   Generating static pages (2/8) 
+   Generating static pages (4/8) 
+   Generating static pages (6/8) 
+ ✓ Generating static pages (8/8) 
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    25.1 kB         220 kB
+├ ○ /_not-found                          888 B          85.3 kB
+├ ○ /events                              4.93 kB         110 kB
+├ ○ /positions                           4.96 kB         214 kB
+├ ○ /settings                            5.25 kB         108 kB
+└ ○ /workers                             3.6 kB         94.9 kB
++ First Load JS shared by all            84.5 kB
+  ├ chunks/8b1af1a0-9f00e22348b1ea60.js  53.4 kB
+  ├ chunks/999-b81bdad447ee706e.js       29.1 kB
+  └ other shared chunks (total)          2.02 kB
+
+
+○  (Static)  prerendered as static content
+

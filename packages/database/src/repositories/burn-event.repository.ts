@@ -1,0 +1,69 @@
+import { PrismaClient } from '@prisma/client';
+
+export class BurnEventRepository {
+  constructor(private prisma: PrismaClient) {}
+
+  async create(data: {
+    txSignature: string;
+    token: string;
+    amount: number;
+    percentage: number;
+  }) {
+    return await this.prisma.burnEventRecord.create({
+      data: {
+        ...data,
+        amount: data.amount,
+      },
+    });
+  }
+
+  async findBySignature(signature: string) {
+    return await this.prisma.burnEventRecord.findUnique({
+      where: { txSignature: signature },
+    });
+  }
+
+  async findUnprocessed(limit: number = 100) {
+    return await this.prisma.burnEventRecord.findMany({
+      where: { processed: false },
+      orderBy: { timestamp: 'desc' },
+      take: limit,
+    });
+  }
+
+  async markAsProcessed(id: string) {
+    return await this.prisma.burnEventRecord.update({
+      where: { id },
+      data: { processed: true },
+    });
+  }
+
+  async findRecent(limit: number = 50) {
+    return await this.prisma.burnEventRecord.findMany({
+      orderBy: { timestamp: 'desc' },
+      take: limit,
+    });
+  }
+
+  async findByToken(token: string, limit: number = 20) {
+    return await this.prisma.burnEventRecord.findMany({
+      where: { token },
+      orderBy: { timestamp: 'desc' },
+      take: limit,
+    });
+  }
+
+  async deleteOlderThan(days: number) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    return await this.prisma.burnEventRecord.deleteMany({
+      where: {
+        timestamp: {
+          lt: cutoffDate,
+        },
+        processed: true,
+      },
+    });
+  }
+}

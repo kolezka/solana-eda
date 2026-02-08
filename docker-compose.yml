@@ -1,0 +1,154 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: solana_eda
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
+      REDIS_URL: redis://redis:6379
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      PORT: 3000
+      FRONTEND_URL: http://localhost:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_WS_URL: ws://localhost:3000
+    depends_on:
+      - api
+
+  trading-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        WORKER_NAME: trading-bot
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
+      REDIS_URL: redis://redis:6379
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      TRADING_PRIVATE_KEY: ${TRADING_PRIVATE_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  liquidity-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        WORKER_NAME: liquidity-monitor
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
+      REDIS_URL: redis://redis:6379
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  burn-detector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        WORKER_NAME: burn-detector
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
+      REDIS_URL: redis://redis:6379
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  price-aggregator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        WORKER_NAME: price-aggregator
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
+      REDIS_URL: redis://redis:6379
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      TRACKED_TOKENS: ${TRACKED_TOKENS:-So11111111111111111111111111111111111111112,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB}
+      PRICE_POLL_INTERVAL: ${PRICE_POLL_INTERVAL:-10000}
+      WORKER_NAME: price-aggregator
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:

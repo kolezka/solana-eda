@@ -1,0 +1,5 @@
+
+> api@1.0.0 build /Users/me/Development/solana-eda/apps/api
+> nest build
+
+webpack 5.97.1 compiled [1m[32msuccessfully[39m[22m in 1262 ms
