@@ -39,14 +39,14 @@ export class PositionRepository {
     });
   }
 
-  async findById(id: string): Promise<(PositionWithTrades) | null> {
+  async findById(id: string): Promise<PositionWithTrades | null> {
     return await this.prisma.position.findUnique({
       where: { id },
       include: { trades: true },
     });
   }
 
-  async findOpenPositions(): Promise<(PositionWithTrades)[]> {
+  async findOpenPositions(): Promise<PositionWithTrades[]> {
     return await this.prisma.position.findMany({
       where: { status: 'OPEN' },
       include: { trades: true },
@@ -54,7 +54,7 @@ export class PositionRepository {
     });
   }
 
-  async findClosedPositions(limit: number = 50): Promise<(PositionWithTrades)[]> {
+  async findClosedPositions(limit: number = 50): Promise<PositionWithTrades[]> {
     return await this.prisma.position.findMany({
       where: { status: 'CLOSED' },
       include: { trades: true },
@@ -63,7 +63,7 @@ export class PositionRepository {
     });
   }
 
-  async findByToken(token: string): Promise<(PositionWithTrades)[]> {
+  async findByToken(token: string): Promise<PositionWithTrades[]> {
     return await this.prisma.position.findMany({
       where: { token },
       include: { trades: true },

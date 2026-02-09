@@ -146,21 +146,20 @@ class MarketDetectorWorker {
 
       // Subscribe to OpenBook V2 program logs
       const openBookV2Pubkey = new PublicKey(OPENBOOK_V2_PROGRAM_ID);
-      this.openBookSubscriptionId = wsConn.onLogs(
-        openBookV2Pubkey,
-        async (logs, context) => {
-          if (!this.running) return;
+      this.openBookSubscriptionId = wsConn.onLogs(openBookV2Pubkey, async (logs, context) => {
+        if (!this.running) return;
 
-          try {
-            await this.processOpenBookLogs(logs, context);
-          } catch (error) {
-            console.error(`[MarketDetector] Error processing OpenBook logs:`, error);
-            this.metrics.errors++;
-          }
-        },
+        try {
+          await this.processOpenBookLogs(logs, context);
+        } catch (error) {
+          console.error(`[MarketDetector] Error processing OpenBook logs:`, error);
+          this.metrics.errors++;
+        }
+      });
+
+      console.log(
+        `[MarketDetector] Subscribed to OpenBook V2 with ID: ${this.openBookSubscriptionId}`,
       );
-
-      console.log(`[MarketDetector] Subscribed to OpenBook V2 with ID: ${this.openBookSubscriptionId}`);
     } catch (error) {
       console.error(`[MarketDetector] Error in subscribeToOpenBookMarkets:`, error);
       this.metrics.errors++;
@@ -301,7 +300,10 @@ class MarketDetectorWorker {
           // Verify it's a market account by fetching its info
           try {
             const accountInfo = await this.connection.getAccountInfo(new PublicKey(address));
-            if (accountInfo && this.marketParser.detectMarketDEXType(accountInfo.owner) === MarketDEXType.OPENBOOK) {
+            if (
+              accountInfo &&
+              this.marketParser.detectMarketDEXType(accountInfo.owner) === MarketDEXType.OPENBOOK
+            ) {
               return address;
             }
           } catch {
@@ -334,7 +336,10 @@ class MarketDetectorWorker {
           const address = accountKeys[i];
           try {
             const accountInfo = await this.connection.getAccountInfo(new PublicKey(address));
-            if (accountInfo && this.marketParser.detectMarketDEXType(accountInfo.owner) === MarketDEXType.RAYDIUM) {
+            if (
+              accountInfo &&
+              this.marketParser.detectMarketDEXType(accountInfo.owner) === MarketDEXType.RAYDIUM
+            ) {
               return address;
             }
           } catch {

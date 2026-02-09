@@ -76,7 +76,9 @@ export class WorkersController {
     description: 'Successfully retrieved stale workers',
     type: [WorkerStatusDTO],
   })
-  async getStaleWorkers(@Query('olderThanMinutes') olderThanMinutes: number = 5): Promise<WorkerStatusRecord[]> {
+  async getStaleWorkers(
+    @Query('olderThanMinutes') olderThanMinutes: number = 5,
+  ): Promise<WorkerStatusRecord[]> {
     return await this.workersService.getStaleWorkers(olderThanMinutes);
   }
 

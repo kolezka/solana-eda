@@ -23,7 +23,7 @@ export class TradeRepository {
     });
   }
 
-  async findById(id: string): Promise<(TradeWithPosition) | null> {
+  async findById(id: string): Promise<TradeWithPosition | null> {
     return await this.prisma.trade.findUnique({
       where: { id },
       include: { position: true },
@@ -37,14 +37,14 @@ export class TradeRepository {
     });
   }
 
-  async findBySignature(signature: string): Promise<(TradeWithPosition) | null> {
+  async findBySignature(signature: string): Promise<TradeWithPosition | null> {
     return await this.prisma.trade.findUnique({
       where: { signature },
       include: { position: true },
     });
   }
 
-  async findRecent(limit: number = 50): Promise<(TradeWithPosition)[]> {
+  async findRecent(limit: number = 50): Promise<TradeWithPosition[]> {
     return await this.prisma.trade.findMany({
       orderBy: { timestamp: 'desc' },
       take: limit,
@@ -52,7 +52,7 @@ export class TradeRepository {
     });
   }
 
-  async findTradesByType(type: 'BUY' | 'SELL', limit: number = 50): Promise<(TradeWithPosition)[]> {
+  async findTradesByType(type: 'BUY' | 'SELL', limit: number = 50): Promise<TradeWithPosition[]> {
     return await this.prisma.trade.findMany({
       where: { type },
       orderBy: { timestamp: 'desc' },

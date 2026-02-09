@@ -63,14 +63,20 @@ export class WorkerStatusRepository {
     });
   }
 
-  async updateStatus(name: string, status: 'RUNNING' | 'STOPPED' | 'ERROR'): Promise<WorkerStatusRecord> {
+  async updateStatus(
+    name: string,
+    status: 'RUNNING' | 'STOPPED' | 'ERROR',
+  ): Promise<WorkerStatusRecord> {
     return await this.prisma.workerStatusRecord.update({
       where: { name },
       data: { status, lastSeen: new Date() },
     });
   }
 
-  async updateMetrics(name: string, metrics: Record<string, unknown>): Promise<WorkerStatusRecord | null> {
+  async updateMetrics(
+    name: string,
+    metrics: Record<string, unknown>,
+  ): Promise<WorkerStatusRecord | null> {
     const worker = await this.findByName(name);
     if (!worker) return null;
 

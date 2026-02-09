@@ -14,6 +14,9 @@ import type {
 } from '@solana-eda/types';
 import Redis from 'ioredis';
 
+// Re-export deduplication utilities
+export * from './deduplication';
+
 export { Redis as createClient };
 
 // Redis channel names

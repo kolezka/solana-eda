@@ -45,8 +45,12 @@ export interface MarketTokenMetadata {
 export const OPENBOOK_V2_PROGRAM_ID = new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX');
 export const OPENBOOK_V1_PROGRAM_ID = new PublicKey('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin');
 export const RAYDIUM_AMM_PROGRAM_ID = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
-export const RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID = new PublicKey('9qvG1zUp8xF1Bi4m6VdJeG4dSfJZJJnkC3bceCXdRHg');
-export const ORCA_WHIRLPOOL_PROGRAM_ID = new PublicKey('whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc');
+export const RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID = new PublicKey(
+  '9qvG1zUp8xF1Bi4m6VdJeG4dSfJZJJnkC3bceCXdRHg',
+);
+export const ORCA_WHIRLPOOL_PROGRAM_ID = new PublicKey(
+  'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc',
+);
 export const METEORA_DLMM_PROGRAM_ID = new PublicKey('LBUZKhRxPF3XUpBCjp4YzTKwgUurB1XTidjLGcnVxYg');
 
 /**
@@ -67,10 +71,16 @@ export class MarketParser {
   detectMarketDEXType(owner: PublicKey): MarketDEXType {
     const ownerStr = owner.toString();
 
-    if (ownerStr === OPENBOOK_V2_PROGRAM_ID.toString() || ownerStr === OPENBOOK_V1_PROGRAM_ID.toString()) {
+    if (
+      ownerStr === OPENBOOK_V2_PROGRAM_ID.toString() ||
+      ownerStr === OPENBOOK_V1_PROGRAM_ID.toString()
+    ) {
       return MarketDEXType.OPENBOOK;
     }
-    if (ownerStr === RAYDIUM_AMM_PROGRAM_ID.toString() || ownerStr === RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID.toString()) {
+    if (
+      ownerStr === RAYDIUM_AMM_PROGRAM_ID.toString() ||
+      ownerStr === RAYDIUM_LIQUIDITY_POOL_V4_PROGRAM_ID.toString()
+    ) {
       return MarketDEXType.RAYDIUM;
     }
     if (ownerStr === ORCA_WHIRLPOOL_PROGRAM_ID.toString()) {
@@ -86,7 +96,10 @@ export class MarketParser {
   /**
    * Parse market account data based on DEX type
    */
-  parseMarket(accountAddress: PublicKey, accountInfo: AccountInfo<Buffer>): ParsedMarketData | null {
+  parseMarket(
+    accountAddress: PublicKey,
+    accountInfo: AccountInfo<Buffer>,
+  ): ParsedMarketData | null {
     if (!accountInfo || !accountInfo.data) {
       return null;
     }

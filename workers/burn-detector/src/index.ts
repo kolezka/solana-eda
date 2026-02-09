@@ -7,16 +7,8 @@ import {
   ParsedBurnTransaction,
   TokenValidator,
 } from '@solana-eda/solana-client';
-import {
-  PrismaClient,
-  BurnEventRepository,
-  TokenValidationRepository,
-} from '@solana-eda/database';
-import {
-  createBurnEvent,
-  createTokenValidatedEvent,
-  CHANNELS,
-} from '@solana-eda/events';
+import { PrismaClient, BurnEventRepository, TokenValidationRepository } from '@solana-eda/database';
+import { createBurnEvent, createTokenValidatedEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
 import { PrismaPg } from '@prisma/adapter-pg';
 
@@ -71,9 +63,9 @@ class BurnDetectorWorker {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const wsUrl = process.env.SOLANA_WS_URL || 'ws://api.mainnet-beta.solana.com';
 
-    console.log({rpcUrl, wsUrl})
+    console.log({ rpcUrl, wsUrl });
 
-    this.connection = new SolanaConnectionManager(rpcUrl, "http://api.mainnet-beta.solana.com");
+    this.connection = new SolanaConnectionManager(rpcUrl, 'http://api.mainnet-beta.solana.com');
     this.parser = new TransactionParser();
     this.tokenValidator = new TokenValidator();
 
@@ -248,7 +240,9 @@ class BurnDetectorWorker {
 
       // Check if we've validated this token recently
       if (recentlyValidatedTokens.has(tokenMint)) {
-        console.debug(`[BurnDetector] Token ${tokenMint.slice(0, 8)}... validated recently, skipping`);
+        console.debug(
+          `[BurnDetector] Token ${tokenMint.slice(0, 8)}... validated recently, skipping`,
+        );
         return;
       }
 
@@ -336,9 +330,7 @@ class BurnDetectorWorker {
       // Update status periodically
       if (this.metrics.tokensValidated % 10 === 0) {
         await this.updateWorkerStatus('RUNNING');
-        console.log(
-          `[BurnDetector] Validated ${this.metrics.tokensValidated} tokens`,
-        );
+        console.log(`[BurnDetector] Validated ${this.metrics.tokensValidated} tokens`);
       }
     } catch (error) {
       console.error(`[BurnDetector] Error validating token ${tokenMint}:`, error);

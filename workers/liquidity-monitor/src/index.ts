@@ -11,11 +11,7 @@ import {
   LiquidityPoolRepository,
   DiscoveredPoolRepository,
 } from '@solana-eda/database';
-import {
-  createLiquidityEvent,
-  createPoolDiscoveredEvent,
-  CHANNELS,
-} from '@solana-eda/events';
+import { createLiquidityEvent, createPoolDiscoveredEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
 import { PrismaPg } from '@prisma/adapter-pg';
 
@@ -336,7 +332,9 @@ class LiquidityMonitorWorker {
         return;
       }
 
-      console.log(`[LiquidityMonitor] Adding dynamic pool: ${poolAddress.slice(0, 8)}... (${dexType})`);
+      console.log(
+        `[LiquidityMonitor] Adding dynamic pool: ${poolAddress.slice(0, 8)}... (${dexType})`,
+      );
 
       // Get pool account info
       const accountInfo = await this.connection.getAccountInfo(

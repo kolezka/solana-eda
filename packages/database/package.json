@@ -18,7 +18,6 @@
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:reset": "prisma migrate reset",
-
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

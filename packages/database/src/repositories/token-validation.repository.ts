@@ -50,7 +50,10 @@ export class TokenValidationRepository {
     });
   }
 
-  async findHighConfidence(minConfidence: number, limit: number = 50): Promise<TokenValidationRecord[]> {
+  async findHighConfidence(
+    minConfidence: number,
+    limit: number = 50,
+  ): Promise<TokenValidationRecord[]> {
     return await this.prisma.tokenValidationRecord.findMany({
       where: {
         confidence: {

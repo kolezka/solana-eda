@@ -46,7 +46,10 @@ export class LiquidityPoolRepository {
     });
   }
 
-  async findHighVolumePools(minVolume: number = 10000, limit: number = 20): Promise<LiquidityPoolRecord[]> {
+  async findHighVolumePools(
+    minVolume: number = 10000,
+    limit: number = 20,
+  ): Promise<LiquidityPoolRecord[]> {
     return await this.prisma.liquidityPoolRecord.findMany({
       where: { volume24h: { gte: minVolume } },
       orderBy: { volume24h: 'desc' },

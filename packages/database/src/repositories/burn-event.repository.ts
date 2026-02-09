@@ -3,7 +3,12 @@ import { PrismaClient, BurnEventRecord } from '../generated/client';
 export class BurnEventRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(data: { txSignature: string; token: string; amount: number; percentage: number }): Promise<BurnEventRecord> {
+  async create(data: {
+    txSignature: string;
+    token: string;
+    amount: number;
+    percentage: number;
+  }): Promise<BurnEventRecord> {
     return await this.prisma.burnEventRecord.create({
       data: {
         ...data,

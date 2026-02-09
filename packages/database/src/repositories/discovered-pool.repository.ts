@@ -50,10 +50,7 @@ export class DiscoveredPoolRepository {
   async findByTokenPair(tokenA: string, tokenB: string): Promise<DiscoveredPool[]> {
     return await this.prisma.discoveredPool.findMany({
       where: {
-        OR: [
-          { AND: [{ tokenA }, { tokenB }] },
-          { AND: [{ tokenA: tokenB }, { tokenB: tokenA }] },
-        ],
+        OR: [{ AND: [{ tokenA }, { tokenB }] }, { AND: [{ tokenA: tokenB }, { tokenB: tokenA }] }],
       },
       orderBy: { discoveredAt: 'desc' },
     });
