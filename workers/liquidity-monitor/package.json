@@ -12,6 +12,7 @@
     "@prisma/adapter-pg": "^7.3.0",
     "@solana-eda/database": "workspace:*",
     "@solana-eda/events": "workspace:*",
+    "@solana-eda/rabbitmq": "workspace:*",
     "@solana-eda/solana-client": "workspace:*",
     "@solana-eda/types": "workspace:*",
     "@solana/web3.js": "^1.95.0",

@@ -29,6 +29,44 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-solana}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-solana123}
+      RABBITMQ_DEFAULT_VHOST: '/'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rpc-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: rpc-sidecar
+    restart: unless-stopped
+    ports:
+      - '3002:3002'
+    volumes:
+      - /tmp:/tmp
+    environment:
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      SOLANA_RPC_URLS: ${SOLANA_RPC_URLS:-}
+      RPC_SIDECAR_SOCKET: /tmp/solana-rpc.sock
+      RPC_SIDECAR_WS_PORT: 3002
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   api:
     build:
       context: .
@@ -40,15 +78,20 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
       REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-solana}:${RABBITMQ_PASSWORD:-solana123}@rabbitmq:5672
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_RPC_URLS: ${SOLANA_RPC_URLS:-}
       SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
       JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      SOLANA_RPC_HEALTH_CHECK_INTERVAL: ${SOLANA_RPC_HEALTH_CHECK_INTERVAL:-30000}
       PORT: 3000
       FRONTEND_URL: http://localhost:3001
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   frontend:
@@ -76,15 +119,25 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
       REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-solana}:${RABBITMQ_PASSWORD:-solana123}@rabbitmq:5672
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
       SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
       JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
       TRADING_PRIVATE_KEY: ${TRADING_PRIVATE_KEY:-}
+      USE_SIDECAR: ${USE_SIDECAR:-true}
+      RPC_SIDECAR_SOCKET: /tmp/solana-rpc.sock
+      RPC_SIDECAR_WS_URL: ws://rpc-sidecar:3002
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rpc-sidecar:
+        condition: service_started
+    volumes:
+      - /tmp:/tmp
 
   liquidity-monitor:
     build:
@@ -97,14 +150,24 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
       REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-solana}:${RABBITMQ_PASSWORD:-solana123}@rabbitmq:5672
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
       SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
       JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      USE_SIDECAR: ${USE_SIDECAR:-true}
+      RPC_SIDECAR_SOCKET: /tmp/solana-rpc.sock
+      RPC_SIDECAR_WS_URL: ws://rpc-sidecar:3002
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rpc-sidecar:
+        condition: service_started
+    volumes:
+      - /tmp:/tmp
 
   burn-detector:
     build:
@@ -117,14 +180,24 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
       REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-solana}:${RABBITMQ_PASSWORD:-solana123}@rabbitmq:5672
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
       SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
       JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      USE_SIDECAR: ${USE_SIDECAR:-true}
+      RPC_SIDECAR_SOCKET: /tmp/solana-rpc.sock
+      RPC_SIDECAR_WS_URL: ws://rpc-sidecar:3002
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rpc-sidecar:
+        condition: service_started
+    volumes:
+      - /tmp:/tmp
 
   price-aggregator:
     build:
@@ -137,18 +210,60 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
       REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-solana}:${RABBITMQ_PASSWORD:-solana123}@rabbitmq:5672
       SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_RPC_URLS: ${SOLANA_RPC_URLS:-}
       SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
       JUPITER_API_URL: ${JUPITER_API_URL:-https://quote-api.jup.ag/v6}
+      SOLANA_RPC_HEALTH_CHECK_INTERVAL: ${SOLANA_RPC_HEALTH_CHECK_INTERVAL:-30000}
       TRACKED_TOKENS: ${TRACKED_TOKENS:-So11111111111111111111111111111111111111112,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB}
       PRICE_POLL_INTERVAL: ${PRICE_POLL_INTERVAL:-10000}
       WORKER_NAME: price-aggregator
+      USE_SIDECAR: ${USE_SIDECAR:-true}
+      RPC_SIDECAR_SOCKET: /tmp/solana-rpc.sock
+      RPC_SIDECAR_WS_URL: ws://rpc-sidecar:3002
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rpc-sidecar:
+        condition: service_started
+    volumes:
+      - /tmp:/tmp
+
+  market-detector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        WORKER_NAME: market-detector
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/solana_eda?schema=public
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-solana}:${RABBITMQ_PASSWORD:-solana123}@rabbitmq:5672
+      SOLANA_RPC_URL: ${SOLANA_RPC_URL:-https://api.devnet.solana.com}
+      SOLANA_WS_URL: ${SOLANA_WS_URL:-wss://api.devnet.solana.com}
+      USE_SIDECAR: ${USE_SIDECAR:-true}
+      RPC_SIDECAR_SOCKET: /tmp/solana-rpc.sock
+      RPC_SIDECAR_WS_URL: ws://rpc-sidecar:3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      rpc-sidecar:
+        condition: service_started
+    volumes:
+      - /tmp:/tmp
 
 volumes:
   postgres_data:
   redis_data:
+  rabbitmq_data:

@@ -33,7 +33,9 @@
       "@solana-eda/config": ["./packages/config/src"],
       "@solana-eda/database": ["./packages/database/src"],
       "@solana-eda/monitoring": ["./packages/monitoring/src"],
-      "@solana-eda/error-handling": ["./packages/error-handling/src"]
+      "@solana-eda/error-handling": ["./packages/error-handling/src"],
+      "@solana-eda/rabbitmq": ["./packages/rabbitmq/src"],
+      "@solana-eda/solana-client": ["./packages/solana-client/src"]
     }
   }
 }

@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import { SolanaConnectionManager, DEXAggregator } from '@solana-eda/solana-client';
+import { SolanaConnectionManager, SidecarConnection, DEXAggregator } from '@solana-eda/solana-client';
 import type { BestQuote, SwapResult } from '@solana-eda/solana-client';
 import {
   PrismaClient,
@@ -15,9 +15,16 @@ import {
   createPositionClosedEvent,
   CHANNELS,
   validateEvent,
+  FeatureFlags,
 } from '@solana-eda/events';
 import type { AnyEvent } from '@solana-eda/events';
 import { Keypair, PublicKey } from '@solana/web3.js';
+import {
+  RabbitMQConnection,
+  initWorkerRabbitMQ,
+  publishWorkerEvent,
+  closeWorkerRabbitMQ,
+} from '@solana-eda/rabbitmq';
 
 dotenv.config();
 
@@ -32,39 +39,114 @@ const SOL_MINT = 'So11111111111111111111111111111112';
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
 class TradingBotWorker {
-  private connection: SolanaConnectionManager;
+  private connection: SolanaConnectionManager | SidecarConnection;
   private dexAggregator: DEXAggregator;
   private wallet: Keypair;
   private running = false;
   private workerName = 'trading-bot';
   private portfolioValue = 0;
+  private useSidecar: boolean = false;
+
+  // RabbitMQ properties
+  private rabbitMQConnection: RabbitMQConnection | null = null;
+  private rabbitMQEnabled = false;
+  private dualWriteEnabled = false;
+
   private metrics = {
     eventsProcessed: 0,
     errors: 0,
     tradesExecuted: 0,
     startTime: Date.now(),
+    // RabbitMQ metrics
+    rabbitMQPublishSuccess: 0,
+    rabbitMQPublishFailure: 0,
+    // Sidecar metrics
+    sidecarConnected: false,
   };
 
   constructor() {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    this.useSidecar = process.env.USE_SIDECAR === 'true';
 
     const privateKey = process.env.TRADING_PRIVATE_KEY;
     this.wallet = privateKey
       ? Keypair.fromSecretKey(Buffer.from(privateKey, 'base64'))
       : Keypair.generate();
 
-    this.connection = new SolanaConnectionManager(rpcUrl);
-    this.dexAggregator = new DEXAggregator(this.connection.getConnection(), this.wallet, redisUrl, {
-      enabledDEXes: ['jupiter', 'orca', 'meteora', 'raydium'],
-    });
+    if (this.useSidecar) {
+      this.connection = new SidecarConnection();
+      console.log('[TradingBot] Using RPC Sidecar for connection');
+    } else {
+      this.connection = new SolanaConnectionManager({ rpcUrl });
+      console.log('[TradingBot] Using direct Solana connection');
+    }
+
+    // Note: DEXAggregator expects a Connection, we need to handle this
+    // For sidecar, we'll need to create a wrapper or update DEXAggregator
+    this.dexAggregator = new DEXAggregator(
+      // @ts-ignore - Connection type compatibility
+      this.connection.getConnection ? this.connection.getConnection() : this.connection as any,
+      this.wallet,
+      redisUrl,
+      {
+        enabledDEXes: ['jupiter', 'orca', 'meteora', 'raydium'],
+      }
+    );
 
     console.log(`[TradingBot] Wallet address: ${this.wallet.publicKey.toString()}`);
     console.log(`[TradingBot] Enabled DEXes: ${this.dexAggregator.getEnabledDEXes().join(', ')}`);
   }
 
+  /**
+   * Initialize RabbitMQ connection for event publishing
+   */
+  private async initializeRabbitMQ() {
+    // Check feature flags
+    this.rabbitMQEnabled = FeatureFlags.isRabbitMQEnabled();
+    this.dualWriteEnabled = FeatureFlags.isDualWriteEnabled();
+
+    if (!this.rabbitMQEnabled) {
+      console.log('[TradingBot] RabbitMQ publishing disabled');
+      return;
+    }
+
+    try {
+      console.log('[TradingBot] Initializing RabbitMQ connection...');
+      this.rabbitMQConnection = await initWorkerRabbitMQ({
+        url: FeatureFlags.getRabbitMQUrl(),
+        exchangeName: 'solana.events',
+        enablePublisherConfirms: true,
+      });
+      console.log('[TradingBot] RabbitMQ connection established');
+    } catch (error) {
+      console.error('[TradingBot] Failed to connect to RabbitMQ:', error);
+      this.rabbitMQEnabled = false;
+      this.rabbitMQConnection = null;
+    }
+  }
+
   async start() {
     console.log(`[TradingBot] Starting worker...`);
+
+    // Log feature flags configuration
+    FeatureFlags.logConfiguration(this.workerName);
+
+    // Connect to sidecar if enabled
+    if (this.useSidecar && this.connection instanceof SidecarConnection) {
+      try {
+        await this.connection.connect();
+        this.metrics.sidecarConnected = true;
+        console.log('[TradingBot] Connected to RPC Sidecar');
+      } catch (error) {
+        console.error('[TradingBot] Failed to connect to RPC Sidecar:', error);
+        throw error;
+      }
+    }
+
+    // Initialize RabbitMQ
+    await this.initializeRabbitMQ();
+
     this.running = true;
 
     await this.updateWorkerStatus('RUNNING');
@@ -79,9 +161,26 @@ class TradingBotWorker {
     console.log(`[TradingBot] Stopping worker...`);
     this.running = false;
 
+    // Close RabbitMQ connection
+    if (this.rabbitMQConnection) {
+      try {
+        await closeWorkerRabbitMQ(this.rabbitMQConnection);
+        console.log('[TradingBot] RabbitMQ connection closed');
+      } catch (error) {
+        console.error('[TradingBot] Error closing RabbitMQ:', error);
+      }
+      this.rabbitMQConnection = null;
+    }
+
     await this.updateWorkerStatus('STOPPED');
     await this.dexAggregator.close();
-    await this.connection.close();
+
+    // Close sidecar connection if applicable
+    if (this.connection instanceof SidecarConnection) {
+      await this.connection.close();
+    } else {
+      await this.connection.close();
+    }
 
     console.log(`[TradingBot] Worker stopped`);
   }
@@ -111,7 +210,28 @@ class TradingBotWorker {
       },
     };
 
+    // Publish to Redis (always)
     await redis.publish(CHANNELS.WORKERS_STATUS, JSON.stringify(statusEvent));
+
+    // Also publish to RabbitMQ if enabled
+    if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+      try {
+        await publishWorkerEvent(
+          this.rabbitMQConnection,
+          'WORKER_STATUS',
+          statusEvent.data,
+          {
+            routingKey: `worker.${this.workerName}.${status.toLowerCase()}`,
+            source: 'trading-bot',
+            correlationId: statusEvent.id,
+          }
+        );
+        this.metrics.rabbitMQPublishSuccess++;
+      } catch (error) {
+        console.error('[TradingBot] RabbitMQ status publish failed:', error);
+        this.metrics.rabbitMQPublishFailure++;
+      }
+    }
   }
 
   private async subscribeToBurnEvents() {
@@ -260,7 +380,28 @@ class TradingBotWorker {
         },
       };
 
+      // Publish to Redis (always)
       await redis.publish(CHANNELS.EVENTS_TRADES, JSON.stringify(tradeEvent));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'TRADE_EXECUTED',
+            tradeEvent.data,
+            {
+              routingKey: 'trade.executed',
+              source: 'trading-bot',
+              correlationId: tradeEvent.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[TradingBot] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
 
       const positionEvent: AnyEvent = {
         type: 'POSITION_OPENED',
@@ -276,7 +417,28 @@ class TradingBotWorker {
         },
       };
 
+      // Publish to Redis (always)
       await redis.publish(CHANNELS.EVENTS_POSITIONS, JSON.stringify(positionEvent));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'POSITION_OPENED',
+            positionEvent.data,
+            {
+              routingKey: 'position.opened',
+              source: 'trading-bot',
+              correlationId: positionEvent.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[TradingBot] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
 
       this.metrics.tradesExecuted++;
 
@@ -380,7 +542,28 @@ class TradingBotWorker {
         },
       };
 
+      // Publish to Redis (always)
       await redis.publish(CHANNELS.EVENTS_TRADES, JSON.stringify(tradeEvent));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'TRADE_EXECUTED',
+            tradeEvent.data,
+            {
+              routingKey: 'trade.executed',
+              source: 'trading-bot',
+              correlationId: tradeEvent.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[TradingBot] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
 
       const pnl = Number(updatedPosition.pnl);
       const holdDuration = updatedPosition.closedAt
@@ -403,7 +586,28 @@ class TradingBotWorker {
         },
       };
 
+      // Publish to Redis (always)
       await redis.publish(CHANNELS.EVENTS_POSITIONS, JSON.stringify(positionEvent));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'POSITION_CLOSED',
+            positionEvent.data,
+            {
+              routingKey: 'position.closed',
+              source: 'trading-bot',
+              correlationId: positionEvent.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[TradingBot] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
 
       console.log(
         `[TradingBot] Sell order executed: Position ${position.id}, P&L: ${pnl.toFixed(2)}%`,

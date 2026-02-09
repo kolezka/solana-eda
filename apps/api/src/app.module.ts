@@ -6,6 +6,8 @@ import { TradingModule } from './modules/trading/trading.module';
 import { PositionsModule } from './modules/positions/positions.module';
 import { RedisModule } from './redis/redis.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -15,6 +17,11 @@ import { PrismaModule } from './prisma/prisma.module';
     }),
     PrismaModule,
     RedisModule,
+    RabbitMQModule,
+    EventEmitterModule.forRoot({
+      wildcard: true,
+      delimiter: ':',
+    }),
     EventsModule,
     WorkersModule,
     TradingModule,

@@ -30,14 +30,14 @@ export class TradeSettingsRepository {
     const result = await this.prisma.tradeSettings.findUnique({
       where: { id },
     });
-    return result as TradeSettings | null;
+    return result as unknown as TradeSettings | null;
   }
 
   async findByName(name: string): Promise<TradeSettings | null> {
     const result = await this.prisma.tradeSettings.findUnique({
       where: { name },
     });
-    return result as TradeSettings | null;
+    return result as unknown as TradeSettings | null;
   }
 
   async findEnabled(): Promise<TradeSettings[]> {

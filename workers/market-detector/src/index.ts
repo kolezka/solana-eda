@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { PublicKey } from '@solana/web3.js';
 import {
   SolanaConnectionManager,
+  SidecarConnection,
   MarketParser,
   MarketDEXType,
   OPENBOOK_V2_PROGRAM_ID,
@@ -12,9 +13,15 @@ import {
   USDT_MINT,
 } from '@solana-eda/solana-client';
 import { PrismaClient, MarketRepository } from '@solana-eda/database';
-import { createMarketDiscoveredEvent, CHANNELS } from '@solana-eda/events';
+import { createMarketDiscoveredEvent, CHANNELS, FeatureFlags } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
 import { PrismaPg } from '@prisma/adapter-pg';
+import {
+  RabbitMQConnection,
+  initWorkerRabbitMQ,
+  publishWorkerEvent,
+  closeWorkerRabbitMQ,
+} from '@solana-eda/rabbitmq';
 
 dotenv.config();
 
@@ -42,11 +49,18 @@ const DUPLICATE_WINDOW = 60 * 60 * 1000;
 const recentMarkets = new Map<string, number>();
 
 class MarketDetectorWorker {
-  private connection: SolanaConnectionManager;
+  private connection: SolanaConnectionManager | SidecarConnection;
   private marketParser: MarketParser;
   private running = false;
   private workerName = 'market-detector';
   private openBookSubscriptionId: number | null = null;
+  private useSidecar: boolean = false;
+
+  // RabbitMQ properties
+  private rabbitMQConnection: RabbitMQConnection | null = null;
+  private rabbitMQEnabled = false;
+  private dualWriteEnabled = false;
+
   private metrics = {
     eventsProcessed: 0,
     errors: 0,
@@ -54,25 +68,85 @@ class MarketDetectorWorker {
     duplicatesFiltered: 0,
     belowThresholdFiltered: 0,
     startTime: Date.now(),
+    // RabbitMQ metrics
+    rabbitMQPublishSuccess: 0,
+    rabbitMQPublishFailure: 0,
+    // Sidecar metrics
+    sidecarConnected: false,
   };
 
   constructor() {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const wsUrl = process.env.SOLANA_WS_URL || 'wss://api.mainnet-beta.solana.com';
+    this.useSidecar = process.env.USE_SIDECAR === 'true';
 
     console.log(`[MarketDetector] Initializing with RPC: ${rpcUrl} ${wsUrl}`);
     console.log(`[MarketDetector] Tracking quote mints: ${QUOTE_MINTS.join(', ')}`);
     console.log(`[MarketDetector] Minimum pool size: ${MIN_POOL_SIZE} lamports`);
 
-    this.connection = new SolanaConnectionManager({ rpcUrl, wsUrl });
+    if (this.useSidecar) {
+      this.connection = new SidecarConnection();
+      console.log('[MarketDetector] Using RPC Sidecar for connection');
+    } else {
+      this.connection = new SolanaConnectionManager({ rpcUrl, wsUrl });
+      console.log('[MarketDetector] Using direct Solana connection');
+    }
+
     this.marketParser = new MarketParser();
 
     // Clean up old markets periodically
     setInterval(() => this.cleanOldMarkets(), 300000); // Every 5 minutes
   }
 
+  /**
+   * Initialize RabbitMQ connection for event publishing
+   */
+  private async initializeRabbitMQ() {
+    // Check feature flags
+    this.rabbitMQEnabled = FeatureFlags.isRabbitMQEnabled();
+    this.dualWriteEnabled = FeatureFlags.isDualWriteEnabled();
+
+    if (!this.rabbitMQEnabled) {
+      console.log('[MarketDetector] RabbitMQ publishing disabled');
+      return;
+    }
+
+    try {
+      console.log('[MarketDetector] Initializing RabbitMQ connection...');
+      this.rabbitMQConnection = await initWorkerRabbitMQ({
+        url: FeatureFlags.getRabbitMQUrl(),
+        exchangeName: 'solana.events',
+        enablePublisherConfirms: true,
+      });
+      console.log('[MarketDetector] RabbitMQ connection established');
+    } catch (error) {
+      console.error('[MarketDetector] Failed to connect to RabbitMQ:', error);
+      this.rabbitMQEnabled = false;
+      this.rabbitMQConnection = null;
+    }
+  }
+
   async start() {
     console.log(`[MarketDetector] Starting worker...`);
+
+    // Log feature flags configuration
+    FeatureFlags.logConfiguration(this.workerName);
+
+    // Connect to sidecar if enabled
+    if (this.useSidecar && this.connection instanceof SidecarConnection) {
+      try {
+        await this.connection.connect();
+        this.metrics.sidecarConnected = true;
+        console.log('[MarketDetector] Connected to RPC Sidecar');
+      } catch (error) {
+        console.error('[MarketDetector] Failed to connect to RPC Sidecar:', error);
+        throw error;
+      }
+    }
+
+    // Initialize RabbitMQ
+    await this.initializeRabbitMQ();
+
     this.running = true;
 
     await this.updateWorkerStatus('RUNNING');
@@ -90,17 +164,38 @@ class MarketDetectorWorker {
     console.log(`[MarketDetector] Stopping worker...`);
     this.running = false;
 
+    // Close RabbitMQ connection
+    if (this.rabbitMQConnection) {
+      try {
+        await closeWorkerRabbitMQ(this.rabbitMQConnection);
+        console.log('[MarketDetector] RabbitMQ connection closed');
+      } catch (error) {
+        console.error('[MarketDetector] Error closing RabbitMQ:', error);
+      }
+      this.rabbitMQConnection = null;
+    }
+
     // Remove subscriptions
     if (this.openBookSubscriptionId !== null) {
-      const wsConn = this.connection.getWsConnection();
-      if (wsConn) {
-        wsConn.removeOnLogsListener(this.openBookSubscriptionId);
+      if (this.connection instanceof SidecarConnection) {
+        this.connection.removeOnLogsListener(this.openBookSubscriptionId);
+      } else {
+        const wsConn = this.connection.getWsConnection();
+        if (wsConn) {
+          wsConn.removeOnLogsListener(this.openBookSubscriptionId);
+        }
       }
     }
 
     await this.updateWorkerStatus('STOPPED');
     await redis.quit();
-    await this.connection.close();
+
+    // Close connection
+    if (this.connection instanceof SidecarConnection) {
+      await this.connection.close();
+    } else {
+      await this.connection.close();
+    }
 
     console.log(`[MarketDetector] Worker stopped`);
   }
@@ -128,7 +223,28 @@ class MarketDetectorWorker {
       },
     };
 
+    // Publish to Redis (always)
     await redis.publish(CHANNELS.WORKERS_STATUS, JSON.stringify(statusEvent));
+
+    // Also publish to RabbitMQ if enabled
+    if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+      try {
+        await publishWorkerEvent(
+          this.rabbitMQConnection,
+          'WORKER_STATUS',
+          statusEvent.data,
+          {
+            routingKey: `worker.${this.workerName}.${status.toLowerCase()}`,
+            source: 'market-detector',
+            correlationId: statusEvent.id,
+          }
+        );
+        this.metrics.rabbitMQPublishSuccess++;
+      } catch (error) {
+        console.error('[MarketDetector] RabbitMQ status publish failed:', error);
+        this.metrics.rabbitMQPublishFailure++;
+      }
+    }
   }
 
   /**
@@ -137,25 +253,41 @@ class MarketDetectorWorker {
    */
   private async subscribeToOpenBookMarkets() {
     try {
-      const wsConn = this.connection.getWsConnection();
-      if (!wsConn) {
-        throw new Error('WebSocket connection not available');
-      }
-
       console.log(`[MarketDetector] Subscribing to OpenBook V2 market creation...`);
 
       // Subscribe to OpenBook V2 program logs
       const openBookV2Pubkey = new PublicKey(OPENBOOK_V2_PROGRAM_ID);
-      this.openBookSubscriptionId = wsConn.onLogs(openBookV2Pubkey, async (logs, context) => {
-        if (!this.running) return;
 
-        try {
-          await this.processOpenBookLogs(logs, context);
-        } catch (error) {
-          console.error(`[MarketDetector] Error processing OpenBook logs:`, error);
-          this.metrics.errors++;
+      if (this.connection instanceof SidecarConnection) {
+        this.openBookSubscriptionId = await this.connection.onLogs(
+          OPENBOOK_V2_PROGRAM_ID,
+          async (logs, context) => {
+            if (!this.running) return;
+
+            try {
+              await this.processOpenBookLogs(logs, context);
+            } catch (error) {
+              console.error(`[MarketDetector] Error processing OpenBook logs:`, error);
+              this.metrics.errors++;
+            }
+          }
+        );
+      } else {
+        const wsConn = this.connection.getWsConnection();
+        if (!wsConn) {
+          throw new Error('WebSocket connection not available');
         }
-      });
+        this.openBookSubscriptionId = wsConn.onLogs(openBookV2Pubkey, async (logs, context) => {
+          if (!this.running) return;
+
+          try {
+            await this.processOpenBookLogs(logs, context);
+          } catch (error) {
+            console.error(`[MarketDetector] Error processing OpenBook logs:`, error);
+            this.metrics.errors++;
+          }
+        });
+      }
 
       console.log(
         `[MarketDetector] Subscribed to OpenBook V2 with ID: ${this.openBookSubscriptionId}`,
@@ -171,26 +303,41 @@ class MarketDetectorWorker {
    */
   private async subscribeToProgramLogs() {
     try {
-      const wsConn = this.connection.getWsConnection();
-      if (!wsConn) {
-        return; // WebSocket not available, skip
-      }
-
       console.log(`[MarketDetector] Subscribing to program logs for market discovery...`);
 
       // Monitor Raydium AMM for new pools
       const raydiumAmmPubkey = new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8');
 
-      wsConn.onLogs(raydiumAmmPubkey, async (logs, context) => {
-        if (!this.running) return;
+      if (this.connection instanceof SidecarConnection) {
+        await this.connection.onLogs(
+          '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
+          async (logs, context) => {
+            if (!this.running) return;
 
-        try {
-          await this.processRaydiumLogs(logs, context);
-        } catch (error) {
-          console.error(`[MarketDetector] Error processing Raydium logs:`, error);
-          this.metrics.errors++;
+            try {
+              await this.processRaydiumLogs(logs, context);
+            } catch (error) {
+              console.error(`[MarketDetector] Error processing Raydium logs:`, error);
+              this.metrics.errors++;
+            }
+          }
+        );
+      } else {
+        const wsConn = this.connection.getWsConnection();
+        if (!wsConn) {
+          return; // WebSocket not available, skip
         }
-      });
+        wsConn.onLogs(raydiumAmmPubkey, async (logs, context) => {
+          if (!this.running) return;
+
+          try {
+            await this.processRaydiumLogs(logs, context);
+          } catch (error) {
+            console.error(`[MarketDetector] Error processing Raydium logs:`, error);
+            this.metrics.errors++;
+          }
+        });
+      }
 
       console.log(`[MarketDetector] Subscribed to Raydium AMM logs`);
     } catch (error) {
@@ -414,7 +561,28 @@ class MarketDetectorWorker {
         marketData: marketData.marketData,
       });
 
+      // Publish to Redis (always)
       await redis.publish(CHANNELS.EVENTS_MARKETS, JSON.stringify(event));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'MARKET_DISCOVERED',
+            event.data,
+            {
+              routingKey: 'market.discovered',
+              source: 'market-detector',
+              correlationId: event.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[MarketDetector] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
 
       this.metrics.marketsDiscovered++;
       this.metrics.eventsProcessed++;

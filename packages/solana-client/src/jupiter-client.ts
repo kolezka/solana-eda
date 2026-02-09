@@ -1,6 +1,7 @@
-import { Connection, Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Transaction, TransactionInstruction, VersionedTransaction } from '@solana/web3.js';
 import type { QuoteResponse, QuoteGetRequest, SwapRequest, SwapResponse } from '@jup-ag/api';
-import type { DEXClient, DEXQuote, DEXSwapResult } from './types';
+import type { DEXClient, DEXQuote, DEXSwapResult, SwapExecutionOptions } from './types';
+import { PriorityFeeManager } from './priority-fee-manager';
 
 /**
  * Jupiter DEX Client
@@ -10,6 +11,7 @@ export class JupiterClient implements DEXClient {
   name = 'Jupiter';
 
   private apiUrl: string;
+  private priorityFeeManager: PriorityFeeManager;
 
   constructor(
     private connection: Connection,
@@ -17,6 +19,7 @@ export class JupiterClient implements DEXClient {
     apiUrl: string = 'https://quote-api.jup.ag/v6',
   ) {
     this.apiUrl = apiUrl;
+    this.priorityFeeManager = new PriorityFeeManager();
   }
 
   async getQuote(inputMint: string, outputMint: string, amount: string): Promise<DEXQuote> {
@@ -65,7 +68,11 @@ export class JupiterClient implements DEXClient {
     }
   }
 
-  async executeSwap(quote: DEXQuote, maxSlippageBps: number = 50): Promise<DEXSwapResult> {
+  async executeSwap(
+    quote: DEXQuote,
+    maxSlippageBps: number = 50,
+    options?: SwapExecutionOptions,
+  ): Promise<DEXSwapResult> {
     try {
       const swapRequest: SwapRequest = {
         quoteResponse: {
@@ -97,6 +104,11 @@ export class JupiterClient implements DEXClient {
         userPublicKey: this.wallet.publicKey.toBase58(),
         wrapAndUnwrapSol: true,
         dynamicComputeUnitLimit: true,
+        prioritizationFeeLamports: options?.priorityFee !== undefined
+          ? ({ prioritizationFeeLamports: Number(options.priorityFee) } as any)
+          : undefined,
+        // computeUnitLimit is not part of SwapRequest type, adding as extension
+        ...(options?.computeUnits ? { computeUnitLimit: options.computeUnits } as any : {}),
       };
 
       // Use fetch to call Jupiter's swap API
@@ -128,7 +140,16 @@ export class JupiterClient implements DEXClient {
 
       // Deserialize and sign the transaction
       const swapTransactionBuf = Buffer.from(swapResponse.swapTransaction, 'base64');
-      const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+      let transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+
+      // If priority fee was not set by Jupiter, add it manually
+      if (options?.priorityFee && !swapRequest.prioritizationFeeLamports) {
+        // For VersionedTransaction, we need to add ComputeBudget instructions
+        // This is a simplified approach - production code should handle this more carefully
+        console.warn(
+          '[JupiterClient] Manual priority fee addition for VersionedTransaction not fully implemented',
+        );
+      }
 
       transaction.sign([this.wallet]);
 

@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, VersionedTransaction, Transaction } from '@solana/web3.js';
-import type { DEXClient, DEXQuote, DEXSwapResult } from './types';
+import type { DEXClient, DEXQuote, DEXSwapResult, SwapExecutionOptions } from './types';
 
 interface QuoteResponse {
   outAmount: string;
@@ -101,7 +101,11 @@ export class OrcaClient implements DEXClient {
   /**
    * Execute a swap using Jupiter API (which will route through Orca if available)
    */
-  async executeSwap(quote: DEXQuote, maxSlippageBps: number = 50): Promise<DEXSwapResult> {
+  async executeSwap(
+    quote: DEXQuote,
+    maxSlippageBps: number = 50,
+    options?: SwapExecutionOptions,
+  ): Promise<DEXSwapResult> {
     try {
       const swapRequest = {
         quoteResponse: {
@@ -117,6 +121,8 @@ export class OrcaClient implements DEXClient {
         userPublicKey: this.wallet.publicKey.toBase58(),
         wrapAndUnwrapSol: true,
         dynamicComputeUnitLimit: true,
+        prioritizationFeeLamports: options?.priorityFee ?? undefined,
+        computeUnitLimit: options?.computeUnits ?? undefined,
       };
 
       const response = await fetch(`${this.apiUrl}/swap`, {

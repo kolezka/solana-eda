@@ -1,15 +1,21 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import { SolanaConnectionManager, AccountWatcher, PoolParser } from '@solana-eda/solana-client';
+import { SolanaConnectionManager, SidecarConnection, AccountWatcher, PoolParser } from '@solana-eda/solana-client';
 import type { ParsedPoolData } from '@solana-eda/solana-client';
 import {
   PrismaClient,
   LiquidityPoolRepository,
   DiscoveredPoolRepository,
 } from '@solana-eda/database';
-import { createLiquidityEvent, createPoolDiscoveredEvent, CHANNELS } from '@solana-eda/events';
+import { createLiquidityEvent, createPoolDiscoveredEvent, CHANNELS, FeatureFlags } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
 import { PrismaPg } from '@prisma/adapter-pg';
+import {
+  RabbitMQConnection,
+  initWorkerRabbitMQ,
+  publishWorkerEvent,
+  closeWorkerRabbitMQ,
+} from '@solana-eda/rabbitmq';
 
 dotenv.config();
 
@@ -67,45 +73,113 @@ interface PoolState {
 }
 
 class LiquidityMonitorWorker {
-  private connection: SolanaConnectionManager;
-  private watcher: AccountWatcher;
+  private connection: SolanaConnectionManager | SidecarConnection;
+  private watcher?: AccountWatcher; // Optional - only used with direct SolanaConnectionManager
   private poolParser: PoolParser;
   private running = false;
   private workerName = 'liquidity-monitor';
   private poolStates: Map<string, PoolState>;
   private historicalStates: Map<string, ParsedPoolData[]>;
   private dynamicPools: Set<string>; // Pools discovered via market events
+  private useSidecar: boolean = false;
+
+  // RabbitMQ properties
+  private rabbitMQConnection: RabbitMQConnection | null = null;
+  private rabbitMQEnabled = false;
+  private dualWriteEnabled = false;
+
   private metrics = {
     eventsProcessed: 0,
     errors: 0,
     poolsMonitored: 0,
     dynamicPoolsAdded: 0,
     startTime: Date.now(),
+    // RabbitMQ metrics
+    rabbitMQPublishSuccess: 0,
+    rabbitMQPublishFailure: 0,
+    // Sidecar metrics
+    sidecarConnected: false,
   };
 
   constructor() {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const wsUrl = process.env.SOLANA_WS_URL || 'wss://api.mainnet-beta.solana.com';
+    this.useSidecar = process.env.USE_SIDECAR === 'true';
 
     // Debug logging
     console.log('[LiquidityMonitor] rpcUrl:', rpcUrl);
-    console.log('[LiquidityMonitor] rpcUrl type:', typeof rpcUrl);
-    console.log('[LiquidityMonitor] rpcUrl length:', rpcUrl?.length);
-    console.log('[LiquidityMonitor] rpcUrl starts with http?:', rpcUrl?.startsWith('http'));
+    console.log('[LiquidityMonitor] useSidecar:', this.useSidecar);
 
-    this.connection = new SolanaConnectionManager(rpcUrl);
-    this.watcher = new AccountWatcher(this.connection);
+    if (this.useSidecar) {
+      this.connection = new SidecarConnection();
+      console.log('[LiquidityMonitor] Using RPC Sidecar for connection');
+    } else {
+      this.connection = new SolanaConnectionManager({ rpcUrl });
+      console.log('[LiquidityMonitor] Using direct Solana connection');
+    }
+
+    // Only create AccountWatcher for direct SolanaConnectionManager (not SidecarConnection)
+    if (!this.useSidecar) {
+      this.watcher = new AccountWatcher(this.connection as SolanaConnectionManager);
+    }
     this.poolParser = new PoolParser();
     this.poolStates = new Map();
     this.historicalStates = new Map();
     this.dynamicPools = new Set();
   }
 
+  /**
+   * Initialize RabbitMQ connection for event publishing
+   */
+  private async initializeRabbitMQ() {
+    // Check feature flags
+    this.rabbitMQEnabled = FeatureFlags.isRabbitMQEnabled();
+    this.dualWriteEnabled = FeatureFlags.isDualWriteEnabled();
+
+    if (!this.rabbitMQEnabled) {
+      console.log('[LiquidityMonitor] RabbitMQ publishing disabled');
+      return;
+    }
+
+    try {
+      console.log('[LiquidityMonitor] Initializing RabbitMQ connection...');
+      this.rabbitMQConnection = await initWorkerRabbitMQ({
+        url: FeatureFlags.getRabbitMQUrl(),
+        exchangeName: 'solana.events',
+        enablePublisherConfirms: true,
+      });
+      console.log('[LiquidityMonitor] RabbitMQ connection established');
+    } catch (error) {
+      console.error('[LiquidityMonitor] Failed to connect to RabbitMQ:', error);
+      this.rabbitMQEnabled = false;
+      this.rabbitMQConnection = null;
+    }
+  }
+
   async start() {
     console.log(`[LiquidityMonitor] Starting worker...`);
+
+    // Log feature flags configuration
+    FeatureFlags.logConfiguration(this.workerName);
+
+    // Initialize RabbitMQ
+    await this.initializeRabbitMQ();
+
     this.running = true;
 
     await this.updateWorkerStatus('RUNNING');
+
+    // Connect to sidecar if enabled
+    if (this.useSidecar && this.connection instanceof SidecarConnection) {
+      try {
+        await this.connection.connect();
+        this.metrics.sidecarConnected = true;
+        console.log('[LiquidityMonitor] Connected to RPC Sidecar');
+      } catch (error) {
+        console.error('[LiquidityMonitor] Failed to connect to RPC Sidecar:', error);
+        throw error;
+      }
+    }
 
     // Initialize pool states
     await this.initializePoolStates();
@@ -125,7 +199,18 @@ class LiquidityMonitorWorker {
     console.log(`[LiquidityMonitor] Stopping worker...`);
     this.running = false;
 
-    this.watcher.unwatchAll();
+    // Close RabbitMQ connection
+    if (this.rabbitMQConnection) {
+      try {
+        await closeWorkerRabbitMQ(this.rabbitMQConnection);
+        console.log('[LiquidityMonitor] RabbitMQ connection closed');
+      } catch (error) {
+        console.error('[LiquidityMonitor] Error closing RabbitMQ:', error);
+      }
+      this.rabbitMQConnection = null;
+    }
+
+    this.watcher?.unwatchAll();
 
     // Unsubscribe from market discovery events
     if (AUTO_SUBSCRIBE_DISCOVERED) {
@@ -134,7 +219,13 @@ class LiquidityMonitorWorker {
 
     await this.updateWorkerStatus('STOPPED');
     await redis.quit();
-    await this.connection.close();
+
+    // Close connection (works for both SolanaConnectionManager and SidecarConnection)
+    if (this.connection instanceof SidecarConnection) {
+      await this.connection.close();
+    } else {
+      await this.connection.close();
+    }
 
     console.log(`[LiquidityMonitor] Worker stopped`);
   }
@@ -162,7 +253,28 @@ class LiquidityMonitorWorker {
       },
     };
 
+    // Publish to Redis (always)
     await redis.publish(CHANNELS.WORKERS_STATUS, JSON.stringify(statusEvent));
+
+    // Also publish to RabbitMQ if enabled
+    if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+      try {
+        await publishWorkerEvent(
+          this.rabbitMQConnection,
+          'WORKER_STATUS',
+          statusEvent.data,
+          {
+            routingKey: `worker.${this.workerName}.${status.toLowerCase()}`,
+            source: 'liquidity-monitor',
+            correlationId: statusEvent.id,
+          }
+        );
+        this.metrics.rabbitMQPublishSuccess++;
+      } catch (error) {
+        console.error('[LiquidityMonitor] RabbitMQ status publish failed:', error);
+        this.metrics.rabbitMQPublishFailure++;
+      }
+    }
   }
 
   private async initializePoolStates() {
@@ -236,6 +348,12 @@ class LiquidityMonitorWorker {
 
   private async subscribeToPools() {
     console.log(`[LiquidityMonitor] Subscribing to ${POOLS_TO_MONITOR.length} pools...`);
+
+    // Skip if using sidecar (watcher not available)
+    if (!this.watcher) {
+      console.warn('[LiquidityMonitor] AccountWatcher not available (using Sidecar). Pool monitoring disabled.');
+      return;
+    }
 
     for (const poolAddress of POOLS_TO_MONITOR) {
       this.watcher.watchAccount(poolAddress, async (accountInfo, context) => {
@@ -398,10 +516,32 @@ class LiquidityMonitorWorker {
         },
       });
 
+      // Publish to Redis (always)
       await redis.publish(CHANNELS.EVENTS_POOLS, JSON.stringify(event));
 
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'POOL_DISCOVERED',
+            event.data,
+            {
+              routingKey: 'pool.discovered',
+              source: 'liquidity-monitor',
+              correlationId: event.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[LiquidityMonitor] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
+
       // Subscribe to pool changes
-      this.watcher.watchAccount(poolAddress, async (accountInfo, context) => {
+      if (this.watcher) {
+        this.watcher.watchAccount(poolAddress, async (accountInfo, context) => {
         if (!this.running) return;
 
         try {
@@ -412,6 +552,7 @@ class LiquidityMonitorWorker {
           await this.updateWorkerStatus('RUNNING');
         }
       });
+      }
 
       this.metrics.dynamicPoolsAdded++;
       this.metrics.poolsMonitored++;
@@ -493,7 +634,28 @@ class LiquidityMonitorWorker {
           changePercentage: tvlChangePercent,
         });
 
+        // Publish to Redis (always)
         await redis.publish(CHANNELS.EVENTS_LIQUIDITY, JSON.stringify(event));
+
+        // Also publish to RabbitMQ if enabled
+        if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+          try {
+            await publishWorkerEvent(
+              this.rabbitMQConnection,
+              'LIQUIDITY_CHANGED',
+              event.data,
+              {
+                routingKey: 'liquidity.changed',
+                source: 'liquidity-monitor',
+                correlationId: event.id,
+              }
+            );
+            this.metrics.rabbitMQPublishSuccess++;
+          } catch (error) {
+            console.error('[LiquidityMonitor] RabbitMQ publish failed:', error);
+            this.metrics.rabbitMQPublishFailure++;
+          }
+        }
 
         this.metrics.eventsProcessed++;
       }

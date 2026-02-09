@@ -12,6 +12,9 @@ COPY workers/trading-bot/package.json ./workers/trading-bot/package.json
 COPY workers/liquidity-monitor/package.json ./workers/liquidity-monitor/package.json
 COPY workers/burn-detector/package.json ./workers/burn-detector/package.json
 COPY workers/price-aggregator/package.json ./workers/price-aggregator/package.json
+COPY workers/market-detector/package.json ./workers/market-detector/package.json
+COPY workers/rpc-sidecar/package.json ./workers/rpc-sidecar/package.json
+COPY packages/rabbitmq/package.json ./packages/rabbitmq/package.json
 COPY packages/database/package.json ./packages/database/package.json
 COPY packages/types/package.json ./packages/types/package.json
 COPY packages/events/package.json ./packages/events/package.json
@@ -44,3 +47,9 @@ FROM base AS worker
 ARG WORKER_NAME
 COPY --from=build /app /app
 CMD ["sh", "-c", "node workers/${WORKER_NAME}/dist/index.js"]
+
+# ---- RPC Sidecar ----
+FROM base AS rpc-sidecar
+COPY --from=build /app /app
+EXPOSE 3002
+CMD ["node", "workers/rpc-sidecar/dist/index.js"]

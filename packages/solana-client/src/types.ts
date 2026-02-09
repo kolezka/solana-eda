@@ -55,6 +55,8 @@ export interface DEXSwapResult {
 export interface BestQuote extends DEXQuote {
   /** Name of the DEX providing this quote */
   dex: string;
+  /** Accounts involved in the swap (for priority fee calculation) */
+  accountsInvolved?: string[];
 }
 
 /**
@@ -64,6 +66,16 @@ export interface BestQuote extends DEXQuote {
 export interface SwapResult extends DEXSwapResult {
   /** Name of the DEX where the swap was executed */
   dex: string;
+}
+
+/**
+ * Options for swap execution
+ */
+export interface SwapExecutionOptions {
+  /** Priority fee in micro-lamports for transaction processing */
+  priorityFee?: number;
+  /** Compute unit limit for the transaction */
+  computeUnits?: number;
 }
 
 /**
@@ -87,7 +99,12 @@ export interface DEXClient {
    * Execute a swap on this DEX
    * @param quote The quote to execute
    * @param maxSlippageBps Maximum slippage in basis points (e.g., 50 for 0.5%)
+   * @param options Optional execution parameters (priority fees, compute units)
    * @returns Promise<DEXSwapResult> Swap execution result
    */
-  executeSwap(quote: DEXQuote, maxSlippageBps?: number): Promise<DEXSwapResult>;
+  executeSwap(
+    quote: DEXQuote,
+    maxSlippageBps?: number,
+    options?: SwapExecutionOptions,
+  ): Promise<DEXSwapResult>;
 }

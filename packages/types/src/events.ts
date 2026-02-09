@@ -17,6 +17,8 @@ export interface BaseEvent {
   type: EventType;
   timestamp: string;
   id: string;
+  /** Unique event ID for deduplication (UUID) */
+  eventId?: string;
 }
 
 export interface BurnDetectedEvent extends BaseEvent {

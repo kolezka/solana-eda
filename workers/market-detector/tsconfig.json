@@ -5,6 +5,8 @@
     "composite": false,
     "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "noEmit": false,
     "emitDeclarationOnly": false,
     "allowImportingTsExtensions": false,

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
 import type {
   DEXQuoteComparisonEvent,
   BurnDetectedEvent,
@@ -16,6 +17,12 @@ import Redis from 'ioredis';
 
 // Re-export deduplication utilities
 export * from './deduplication';
+
+// Re-export worker publisher
+export * from './worker-publisher';
+
+// Re-export feature flags
+export * from './feature-flags';
 
 export { Redis as createClient };
 
@@ -40,6 +47,7 @@ export const BurnEventSchema = z.object({
   type: z.literal('BURN_DETECTED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     token: z.string(),
     amount: z.string(),
@@ -55,6 +63,7 @@ export const LiquidityEventSchema = z.object({
   type: z.literal('LIQUIDITY_CHANGED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     poolAddress: z.string(),
     tokenA: z.string(),
@@ -70,6 +79,7 @@ export const TradeEventSchema = z.object({
   type: z.literal('TRADE_EXECUTED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     tradeId: z.string(),
     type: z.enum(['BUY', 'SELL']),
@@ -88,6 +98,7 @@ export const PositionOpenedEventSchema = z.object({
   type: z.literal('POSITION_OPENED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     positionId: z.string(),
     token: z.string(),
@@ -102,6 +113,7 @@ export const PositionClosedEventSchema = z.object({
   type: z.literal('POSITION_CLOSED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     positionId: z.string(),
     token: z.string(),
@@ -117,6 +129,7 @@ export const WorkerStatusEventSchema = z.object({
   type: z.literal('WORKER_STATUS'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     workerName: z.string(),
     status: z.enum(['RUNNING', 'STOPPED', 'ERROR']),
@@ -133,6 +146,7 @@ export const PriceUpdateEventSchema = z.object({
   type: z.literal('PRICE_UPDATE'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     token: z.string(),
     price: z.string(),
@@ -154,6 +168,7 @@ export const DEXQuoteComparisonEventSchema = z.object({
   type: z.literal('DEX_QUOTE_COMPARISON'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     inputMint: z.string(),
     outputMint: z.string(),
@@ -178,6 +193,7 @@ export const MarketDiscoveredEventSchema = z.object({
   type: z.literal('MARKET_DISCOVERED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     marketAddress: z.string(),
     baseMint: z.string(),
@@ -199,6 +215,7 @@ export const TokenValidatedEventSchema = z.object({
   type: z.literal('TOKEN_VALIDATED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     token: z.string(),
     isRenounced: z.boolean().optional(),
@@ -224,6 +241,7 @@ export const PoolDiscoveredEventSchema = z.object({
   type: z.literal('POOL_DISCOVERED'),
   timestamp: z.string(),
   id: z.string(),
+  eventId: z.string().optional(),
   data: z.object({
     poolAddress: z.string(),
     dexType: z.enum(['RAYDIUM', 'ORCA', 'METEORA']),
@@ -318,6 +336,7 @@ export function createBurnEvent(data: z.infer<typeof BurnEventSchema>['data']): 
     type: 'BURN_DETECTED',
     timestamp: new Date().toISOString(),
     id: `burn-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -327,6 +346,7 @@ export function createLiquidityEvent(data: z.infer<typeof LiquidityEventSchema>[
     type: 'LIQUIDITY_CHANGED',
     timestamp: new Date().toISOString(),
     id: `liquidity-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -336,6 +356,7 @@ export function createTradeEvent(data: z.infer<typeof TradeEventSchema>['data'])
     type: 'TRADE_EXECUTED',
     timestamp: new Date().toISOString(),
     id: `trade-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -347,6 +368,7 @@ export function createPositionOpenedEvent(
     type: 'POSITION_OPENED',
     timestamp: new Date().toISOString(),
     id: `pos-open-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -358,6 +380,7 @@ export function createPositionClosedEvent(
     type: 'POSITION_CLOSED',
     timestamp: new Date().toISOString(),
     id: `pos-close-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -369,6 +392,7 @@ export function createWorkerStatusEvent(
     type: 'WORKER_STATUS',
     timestamp: new Date().toISOString(),
     id: `worker-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -380,6 +404,7 @@ export function createPriceUpdateEvent(
     type: 'PRICE_UPDATE',
     timestamp: new Date().toISOString(),
     id: `price-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -391,6 +416,7 @@ export function createDEXQuoteComparisonEvent(
     type: 'DEX_QUOTE_COMPARISON',
     timestamp: new Date().toISOString(),
     id: `dex-comparison-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -402,6 +428,7 @@ export function createMarketDiscoveredEvent(
     type: 'MARKET_DISCOVERED',
     timestamp: new Date().toISOString(),
     id: `market-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -413,6 +440,7 @@ export function createTokenValidatedEvent(
     type: 'TOKEN_VALIDATED',
     timestamp: new Date().toISOString(),
     id: `validation-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }
@@ -424,6 +452,7 @@ export function createPoolDiscoveredEvent(
     type: 'POOL_DISCOVERED',
     timestamp: new Date().toISOString(),
     id: `pool-${Date.now()}`,
+    eventId: randomUUID(),
     data,
   };
 }

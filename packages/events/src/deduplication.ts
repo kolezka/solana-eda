@@ -6,6 +6,7 @@
 import { createClient } from './index';
 import type { Redis } from 'ioredis';
 import type { AnyEvent } from '@solana-eda/types';
+import { randomUUID } from 'crypto';
 
 /**
  * Deduplication strategy
@@ -35,6 +36,22 @@ export interface DeduplicationOptions {
   keyPrefix?: string;
   /** Custom key generator function */
   customKeyFn?: (event: AnyEvent) => string;
+  /** Enable metrics tracking */
+  enableMetrics?: boolean;
+}
+
+/**
+ * Deduplication metrics
+ */
+export interface DeduplicationMetrics {
+  /** Total deduplication checks performed */
+  totalChecks: number;
+  /** Number of duplicate events detected */
+  deduplicationHits: number;
+  /** Number of new events processed */
+  deduplicationMisses: number;
+  /** Cache hit rate (hits / total checks) */
+  cacheHitRate: number;
 }
 
 /**
@@ -55,6 +72,14 @@ export class EventDeduplicator {
   private strategy: DeduplicationStrategy;
   private keyPrefix: string;
   private customKeyFn?: (event: AnyEvent) => string;
+  private enableMetrics: boolean;
+
+  // Metrics tracking
+  private metrics: {
+    totalChecks: number;
+    deduplicationHits: number;
+    deduplicationMisses: number;
+  };
 
   constructor(options: DeduplicationOptions) {
     this.redis = options.redis;
@@ -62,6 +87,13 @@ export class EventDeduplicator {
     this.strategy = options.strategy || DeduplicationStrategy.ID;
     this.keyPrefix = options.keyPrefix || 'event:dedup:';
     this.customKeyFn = options.customKeyFn;
+    this.enableMetrics = options.enableMetrics ?? true;
+
+    this.metrics = {
+      totalChecks: 0,
+      deduplicationHits: 0,
+      deduplicationMisses: 0,
+    };
   }
 
   /**
@@ -70,11 +102,19 @@ export class EventDeduplicator {
   async check(event: AnyEvent): Promise<DeduplicationResult> {
     const key = this.generateKey(event);
 
+    if (this.enableMetrics) {
+      this.metrics.totalChecks++;
+    }
+
     try {
       // Try to get existing event
       const existing = await this.redis.get(key);
 
       if (existing) {
+        if (this.enableMetrics) {
+          this.metrics.deduplicationHits++;
+        }
+
         const parsed = JSON.parse(existing) as AnyEvent;
         const firstSeen = new Date(parsed.timestamp).getTime();
         const timeSinceFirstSeen = Date.now() - firstSeen;
@@ -89,12 +129,19 @@ export class EventDeduplicator {
       // Not a duplicate - store it
       await this.store(event, key);
 
+      if (this.enableMetrics) {
+        this.metrics.deduplicationMisses++;
+      }
+
       return {
         isDuplicate: false,
       };
     } catch (error) {
       console.error(`[EventDeduplicator] Error checking deduplication:`, error);
       // On error, allow the event through (fail open)
+      if (this.enableMetrics) {
+        this.metrics.deduplicationMisses++;
+      }
       return {
         isDuplicate: false,
       };
@@ -116,9 +163,12 @@ export class EventDeduplicator {
    * Generate deduplication key for an event
    */
   private generateKey(event: AnyEvent): string {
+    // Prefer eventId (UUID) when available, otherwise fall back to event.id
+    const deduplicationId = event.eventId || event.id;
+
     switch (this.strategy) {
       case DeduplicationStrategy.ID:
-        return `${this.keyPrefix}id:${event.id}`;
+        return `${this.keyPrefix}id:${deduplicationId}`;
 
       case DeduplicationStrategy.SIGNATURE:
         return this.generateSignatureKey(event);
@@ -133,7 +183,7 @@ export class EventDeduplicator {
         return `${this.keyPrefix}custom:${this.customKeyFn(event)}`;
 
       default:
-        return `${this.keyPrefix}id:${event.id}`;
+        return `${this.keyPrefix}id:${deduplicationId}`;
     }
   }
 
@@ -246,6 +296,33 @@ export class EventDeduplicator {
         keysByType: {},
       };
     }
+  }
+
+  /**
+   * Get deduplication metrics
+   */
+  getMetrics(): DeduplicationMetrics {
+    const cacheHitRate = this.metrics.totalChecks > 0
+      ? this.metrics.deduplicationHits / this.metrics.totalChecks
+      : 0;
+
+    return {
+      totalChecks: this.metrics.totalChecks,
+      deduplicationHits: this.metrics.deduplicationHits,
+      deduplicationMisses: this.metrics.deduplicationMisses,
+      cacheHitRate,
+    };
+  }
+
+  /**
+   * Reset metrics
+   */
+  resetMetrics(): void {
+    this.metrics = {
+      totalChecks: 0,
+      deduplicationHits: 0,
+      deduplicationMisses: 0,
+    };
   }
 }
 

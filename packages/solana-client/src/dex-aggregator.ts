@@ -5,6 +5,7 @@ import { JupiterClient } from './jupiter-client';
 import { OrcaClient } from './orca-client';
 import { RaydiumClient } from './raydium-client';
 import { MeteoraClient } from './meteora-client';
+import { PriorityFeeManager } from './priority-fee-manager';
 
 /**
  * DEX Aggregator
@@ -14,6 +15,7 @@ export class DEXAggregator {
   private clients: Map<string, DEXClient>;
   private enabledDEXes: Set<string>;
   private redis: Redis;
+  private priorityFeeManager: PriorityFeeManager;
 
   constructor(
     private connection: Connection,
@@ -26,6 +28,7 @@ export class DEXAggregator {
   ) {
     this.redis = new Redis(redisUrl);
     this.clients = new Map();
+    this.priorityFeeManager = new PriorityFeeManager();
     this.enabledDEXes = new Set(config?.enabledDEXes || ['jupiter', 'orca', 'meteora', 'raydium']);
 
     const jupiterApi = config?.jupiterApiUrl || 'https://quote-api.jup.ag/v6';
@@ -130,8 +133,12 @@ export class DEXAggregator {
 
   /**
    * Execute a swap using the best quote
+   * Now includes priority fee management for reliable mainnet execution
    */
-  async executeBestSwap(bestQuote: BestQuote, maxSlippageBps: number = 50): Promise<SwapResult> {
+  async executeBestSwap(
+    bestQuote: BestQuote,
+    maxSlippageBps: number = 50,
+  ): Promise<SwapResult> {
     const dex = bestQuote.dex;
     console.log(`[DEXAggregator] Executing swap on ${dex}...`);
 
@@ -142,7 +149,22 @@ export class DEXAggregator {
     }
 
     try {
-      const result = await client.executeSwap(bestQuote, maxSlippageBps);
+      // Calculate priority fee for this transaction
+      const feeInfo = await this.priorityFeeManager.calculateFeeForTransaction(
+        this.connection,
+        this.priorityFeeManager.estimateComputeUnitsForSwap(dex),
+        bestQuote.accountsInvolved?.map((a: PublicKey | string) => typeof a === 'string' ? a : a.toBase58()),
+      );
+
+      console.log(
+        `[DEXAggregator] Using priority fee: ${feeInfo.priorityFee} lamports (${(feeInfo.priorityFee / 1000000).toFixed(6)} SOL)`,
+      );
+
+      // Execute swap with priority fee
+      const result = await client.executeSwap(bestQuote, maxSlippageBps, {
+        priorityFee: feeInfo.priorityFee,
+        computeUnits: feeInfo.computeUnits,
+      });
 
       return {
         ...result,

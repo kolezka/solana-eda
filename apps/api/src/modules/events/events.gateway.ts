@@ -1,12 +1,14 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage } from '@nestjs/websockets';
-import type { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable } from '@nestjs/common';
-import type { OnModuleInit } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Redis } from 'ioredis';
-import { validateEvent, CHANNELS } from '@solana-eda/events';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnModuleInit } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import type { AnyEvent } from '@solana-eda/events';
 
+/**
+ * WebSocket Gateway for real-time event delivery
+ * Uses EventEmitter2 to receive events from RabbitMQ consumers
+ */
 @Injectable()
 @WebSocketGateway({
   cors: {
@@ -18,92 +20,112 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   @WebSocketServer()
   server: Server | null = null;
 
+  private readonly logger = new Logger(EventsGateway.name);
   private subscribers: Map<Socket, Set<string>> = new Map();
-  private redisSubscriber: Redis | null = null;
 
-  constructor(@Inject('REDIS') private redis: Redis) {
-    // Don't call subscribeToRedisChannels in constructor
-  }
+  constructor(private readonly eventEmitter: EventEmitter2) {}
 
   onModuleInit(): void {
-    console.log('EventsGateway initialized');
-    // Temporarily disable Redis subscription to test if it's blocking startup
-    // this.subscribeToRedisChannels().catch(err => {
-    //   console.error('Failed to subscribe to Redis channels:', err);
-    // });
+    this.logger.log('EventsGateway initialized with EventEmitter2');
+
+    // Subscribe to all event types from EventEmitter2
+    const eventTypes = [
+      'BURN_DETECTED',
+      'LIQUIDITY_CHANGED',
+      'TRADE_EXECUTED',
+      'POSITION_OPENED',
+      'POSITION_CLOSED',
+      'WORKER_STATUS',
+      'PRICE_UPDATE',
+    ];
+
+    // Register event listeners for each type
+    eventTypes.forEach(eventType => {
+      this.eventEmitter.on(eventType, (event: AnyEvent) => {
+        this.broadcastEvent(eventType, event);
+      });
+    });
+
+    this.logger.log(`Registered listeners for ${eventTypes.length} event types`);
   }
 
   handleConnection(client: Socket): void {
-    console.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
     this.subscribers.set(client, new Set());
+
+    // Send welcome message
+    client.emit('connected', {
+      message: 'Connected to Solana EDA events',
+      timestamp: new Date().toISOString(),
+    });
   }
 
   handleDisconnect(client: Socket): void {
-    console.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
     this.subscribers.delete(client);
   }
 
   @SubscribeMessage('subscribe')
   handleSubscribe(client: Socket, channel: string): void {
-    console.log(`Client ${client.id} subscribed to: ${channel}`);
+    this.logger.log(`Client ${client.id} subscribed to: ${channel}`);
     const channels = this.subscribers.get(client) || new Set();
     channels.add(channel);
     this.subscribers.set(client, channels);
 
-    client.emit('subscribed', { channel });
+    client.emit('subscribed', { channel, timestamp: new Date().toISOString() });
   }
 
   @SubscribeMessage('unsubscribe')
   handleUnsubscribe(client: Socket, channel: string): void {
-    console.log(`Client ${client.id} unsubscribed from: ${channel}`);
+    this.logger.log(`Client ${client.id} unsubscribed from: ${channel}`);
     const channels = this.subscribers.get(client);
     if (channels) {
       channels.delete(channel);
     }
 
-    client.emit('unsubscribed', { channel });
+    client.emit('unsubscribed', { channel, timestamp: new Date().toISOString() });
   }
 
-  private async subscribeToRedisChannels(): Promise<void> {
-    // Create a dedicated subscriber client
-    this.redisSubscriber = this.redis.duplicate();
+  @SubscribeMessage('ping')
+  handlePing(client: Socket): void {
+    client.emit('pong', { timestamp: new Date().toISOString() });
+  }
 
-    // Wait for connection without blocking indefinitely
-    try {
-      await Promise.race([
-        this.redisSubscriber.connect(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Redis connect timeout')), 5000),
-        ),
-      ]);
-    } catch (err) {
-      console.error('Redis subscriber connection failed or timed out:', err);
+  /**
+   * Broadcast event to all subscribed clients
+   */
+  private broadcastEvent(eventType: string, event: AnyEvent): void {
+    if (!this.server) {
       return;
     }
 
-    const channels = [
-      CHANNELS.EVENTS_BURN,
-      CHANNELS.EVENTS_LIQUIDITY,
-      CHANNELS.EVENTS_TRADES,
-      CHANNELS.EVENTS_POSITIONS,
-      CHANNELS.WORKERS_STATUS,
-    ];
-
-    for (const channel of channels) {
-      await this.redisSubscriber.subscribe(channel);
-    }
-
-    this.redisSubscriber.on('message', (channel, message) => {
-      try {
-        const event = validateEvent(JSON.parse(message));
-        this.broadcastEvent(channel, event);
-      } catch (error) {
-        console.error(`Error parsing event:`, error);
-      }
+    // Send to all clients (WebSocket broadcasts don't filter by subscription)
+    // Clients can filter on the frontend if needed
+    this.server.emit('event', {
+      type: eventType,
+      data: event,
+      timestamp: new Date().toISOString(),
     });
+
+    this.logger.debug(`Broadcasted ${eventType} event to clients`);
   }
 
-  private broadcastEvent(channel: string, event: any): void {
-    this.server?.emit('event', { channel, data: event });
+  /**
+   * Get current subscriber count
+   */
+  getSubscriberCount(): number {
+    return this.subscribers.size;
+  }
+
+  /**
+   * Get subscriptions for a client
+   */
+  getClientSubscriptions(clientId: string): string[] {
+    for (const [client, channels] of this.subscribers.entries()) {
+      if (client.id === clientId) {
+        return Array.from(channels);
+      }
+    }
+    return [];
   }
 }

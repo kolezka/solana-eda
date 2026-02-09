@@ -1,11 +1,17 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import { CHANNELS, createPriceUpdateEvent, createWorkerStatusEvent } from '@solana-eda/events';
+import { CHANNELS, createPriceUpdateEvent, createWorkerStatusEvent, FeatureFlags } from '@solana-eda/events';
 import { PriceRepository, WorkerStatusRepository } from '@solana-eda/database';
-import { SolanaConnectionManager } from '@solana-eda/solana-client';
+import { SolanaConnectionManager, SidecarConnection, createRpcPoolFromEnv, type ConnectionType } from '@solana-eda/solana-client';
 import { Keypair } from '@solana/web3.js';
 import { getLogger, LogLevel } from '@solana-eda/monitoring';
+import {
+  RabbitMQConnection,
+  initWorkerRabbitMQ,
+  publishWorkerEvent,
+  closeWorkerRabbitMQ,
+} from '@solana-eda/rabbitmq';
 
 // Load environment variables
 dotenv.config();
@@ -51,26 +57,64 @@ interface TokenPrice {
 }
 
 class PriceAggregatorWorker {
-  private connection: SolanaConnectionManager;
+  private connection: SolanaConnectionManager | SidecarConnection;
   private redis: Redis;
   private priceRepository: PriceRepository;
   private workerStatusRepository: WorkerStatusRepository;
   private isRunning = false;
   private pollInterval?: NodeJS.Timeout;
   private priceHistory: Map<string, number[]> = new Map();
+  private healthCheckInterval?: NodeJS.Timeout;
+  private useSidecar: boolean = false;
+  private useRpcPool: boolean = false;
+  private lastPoolStats?: Map<string, Array<{
+    url: string;
+    healthy: boolean;
+    averageLatency: number;
+    totalRequests: number;
+    failedRequests: number;
+    consecutiveErrors: number;
+  }>> = undefined;
+
+  // RabbitMQ properties
+  private rabbitMQConnection: RabbitMQConnection | null = null;
+  private rabbitMQEnabled = false;
+  private dualWriteEnabled = false;
+
   private metrics = {
     pricesUpdated: 0,
     errors: 0,
     tokensTracked: TRACKED_TOKENS.length,
     lastPollAt: '',
+    // RabbitMQ metrics
+    rabbitMQPublishSuccess: 0,
+    rabbitMQPublishFailure: 0,
+    // Sidecar metrics
+    sidecarConnected: false,
   };
 
   constructor() {
-    // Initialize Solana connection
-    this.connection = new SolanaConnectionManager({
-      rpcUrl: SOLANA_RPC_URL,
-      wsUrl: SOLANA_WS_URL,
-    });
+    this.useSidecar = process.env.USE_SIDECAR === 'true';
+
+    if (this.useSidecar) {
+      this.connection = new SidecarConnection();
+      console.log('[PriceAggregator] Using RPC Sidecar for connection');
+    } else {
+      // Fallback to existing pooling logic
+      const rpcUrls = process.env.SOLANA_RPC_URLS?.split(',') || [];
+      this.useRpcPool = rpcUrls.length > 1 || !!process.env.SOLANA_RPC_URLS?.includes(',');
+
+      this.connection = new SolanaConnectionManager({
+        rpcUrl: SOLANA_RPC_URL,
+        wsUrl: SOLANA_WS_URL,
+        usePool: this.useRpcPool, // Enable pooling if multiple URLs detected
+      });
+
+      if (this.useRpcPool) {
+        console.log('[PriceAggregator] RPC connection pooling enabled');
+        console.log(`[PriceAggregator] Using ${rpcUrls.length} RPC endpoints`);
+      }
+    }
 
     // Initialize Redis
     this.redis = new Redis(REDIS_URL);
@@ -83,8 +127,55 @@ class PriceAggregatorWorker {
     this.workerStatusRepository = new WorkerStatusRepository({ prisma: null });
   }
 
+  /**
+   * Initialize RabbitMQ connection for event publishing
+   */
+  private async initializeRabbitMQ() {
+    // Check feature flags
+    this.rabbitMQEnabled = FeatureFlags.isRabbitMQEnabled();
+    this.dualWriteEnabled = FeatureFlags.isDualWriteEnabled();
+
+    if (!this.rabbitMQEnabled) {
+      console.log('[PriceAggregator] RabbitMQ publishing disabled');
+      return;
+    }
+
+    try {
+      console.log('[PriceAggregator] Initializing RabbitMQ connection...');
+      this.rabbitMQConnection = await initWorkerRabbitMQ({
+        url: FeatureFlags.getRabbitMQUrl(),
+        exchangeName: 'solana.events',
+        enablePublisherConfirms: true,
+      });
+      console.log('[PriceAggregator] RabbitMQ connection established');
+    } catch (error) {
+      console.error('[PriceAggregator] Failed to connect to RabbitMQ:', error);
+      this.rabbitMQEnabled = false;
+      this.rabbitMQConnection = null;
+    }
+  }
+
   async start(): Promise<void> {
     logger.info('Starting Price Aggregator Worker...');
+
+    // Log feature flags configuration
+    FeatureFlags.logConfiguration('price-aggregator');
+
+    // Initialize RabbitMQ
+    await this.initializeRabbitMQ();
+
+    // Connect to sidecar if enabled
+    if (this.useSidecar && this.connection instanceof SidecarConnection) {
+      try {
+        await this.connection.connect();
+        this.metrics.sidecarConnected = true;
+        logger.info('Connected to RPC Sidecar');
+      } catch (error) {
+        logger.error('Failed to connect to RPC Sidecar:', error as Error);
+        throw error;
+      }
+    }
+
     this.isRunning = true;
 
     // Publish initial status
@@ -98,6 +189,7 @@ class PriceAggregatorWorker {
 
     logger.info(`Price Aggregator Worker started. Tracking ${TRACKED_TOKENS.length} tokens.`);
     logger.info(`Polling interval: ${PRICE_POLL_INTERVAL}ms`);
+    logger.info(`RPC Sidecar: ${this.useSidecar ? 'ENABLED' : 'DISABLED'}`);
   }
 
   async stop(): Promise<void> {
@@ -108,13 +200,64 @@ class PriceAggregatorWorker {
       clearInterval(this.pollInterval);
     }
 
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+    }
+
+    // Close RabbitMQ connection
+    if (this.rabbitMQConnection) {
+      try {
+        await closeWorkerRabbitMQ(this.rabbitMQConnection);
+        console.log('[PriceAggregator] RabbitMQ connection closed');
+      } catch (error) {
+        console.error('[PriceAggregator] Error closing RabbitMQ:', error);
+      }
+      this.rabbitMQConnection = null;
+    }
+
     // Publish final status
     await this.publishWorkerStatus();
 
     await this.redis.quit();
-    await this.connection.close();
+
+    // Close connection (works for both SolanaConnectionManager and SidecarConnection)
+    if (this.connection instanceof SidecarConnection) {
+      await this.connection.close();
+    } else {
+      await this.connection.close();
+    }
 
     logger.info('Price Aggregator Worker stopped.');
+  }
+
+  /**
+   * Collect RPC pool statistics for monitoring
+   */
+  private async collectPoolStats(): Promise<void> {
+    if (!this.useRpcPool) return;
+
+    try {
+      const healthStatus = await this.connection.getHealthStatus();
+
+      // Type guard: check if this is SolanaConnectionManager health status
+      if ('poolingEnabled' in healthStatus && healthStatus.poolingEnabled && healthStatus.poolStats) {
+        this.lastPoolStats = healthStatus.poolStats;
+
+        // Log pool health
+        for (const [poolType, endpoints] of healthStatus.poolStats) {
+          for (const endpoint of endpoints) {
+            if (!endpoint.healthy) {
+              console.warn(
+                `[PriceAggregator] RPC endpoint unhealthy: ${endpoint.url} (${poolType}) - ` +
+                `errors: ${endpoint.consecutiveErrors}, avg latency: ${endpoint.averageLatency}ms`
+              );
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[PriceAggregator] Error collecting pool stats:', error);
+    }
   }
 
   private async pollPrices(): Promise<void> {
@@ -315,7 +458,28 @@ class PriceAggregatorWorker {
         })),
       });
 
+      // Publish to Redis (always)
       await this.redis.publish(CHANNELS.EVENTS_PRICE, JSON.stringify(event));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'PRICE_UPDATE',
+            event.data,
+            {
+              routingKey: 'price.updated',
+              source: 'price-aggregator',
+              correlationId: event.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[PriceAggregator] RabbitMQ publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
 
       logger.debug(
         `Price updated: ${priceData.token} = $${vwap.toFixed(6)} (confidence: ${(confidence * 100).toFixed(1)}%)`,
@@ -329,18 +493,65 @@ class PriceAggregatorWorker {
   private async publishWorkerStatus(): Promise<void> {
     try {
       const uptime = process.uptime();
+
+      // Build metrics object
+      const metrics: any = {
+        eventsProcessed: this.metrics.pricesUpdated,
+        errors: this.metrics.errors,
+        uptime,
+        lastEventAt: this.metrics.lastPollAt,
+      };
+
+      // Add RPC pool metrics if enabled
+      if (this.useRpcPool && this.lastPoolStats) {
+        metrics.rpcPoolEnabled = true;
+        metrics.rpcPoolStats = {};
+
+        for (const [poolType, endpoints] of this.lastPoolStats) {
+          const healthyCount = endpoints.filter((e: any) => e.healthy).length;
+          const totalCount = endpoints.length;
+
+          metrics.rpcPoolStats[poolType] = {
+            healthy: `${healthyCount}/${totalCount}`,
+            endpoints: endpoints.map((e: any) => ({
+              url: e.url.replace(/\/\/.*@/, '//***@'), // Hide auth
+              healthy: e.healthy,
+              avgLatency: e.averageLatency,
+              totalRequests: e.totalRequests,
+              failedRequests: e.failedRequests,
+            })),
+          };
+        }
+      }
+
       const event = createWorkerStatusEvent({
         workerName: WORKER_NAME,
         status: this.isRunning ? 'RUNNING' : 'STOPPED',
-        metrics: {
-          eventsProcessed: this.metrics.pricesUpdated,
-          errors: this.metrics.errors,
-          uptime,
-          lastEventAt: this.metrics.lastPollAt,
-        },
+        metrics,
       });
 
+      // Publish to Redis (always)
       await this.redis.publish(CHANNELS.WORKERS_STATUS, JSON.stringify(event));
+
+      // Also publish to RabbitMQ if enabled
+      if (this.rabbitMQEnabled && this.rabbitMQConnection) {
+        try {
+          await publishWorkerEvent(
+            this.rabbitMQConnection,
+            'WORKER_STATUS',
+            event.data,
+            {
+              routingKey: `worker.price-aggregator.${this.isRunning ? 'running' : 'stopped'}`,
+              source: 'price-aggregator',
+              correlationId: event.id,
+            }
+          );
+          this.metrics.rabbitMQPublishSuccess++;
+        } catch (error) {
+          console.error('[PriceAggregator] RabbitMQ status publish failed:', error);
+          this.metrics.rabbitMQPublishFailure++;
+        }
+      }
     } catch (error) {
       logger.error('Error publishing worker status:', error as Error);
     }

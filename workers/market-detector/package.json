@@ -1,7 +1,6 @@
 {
   "name": "@solana-eda/market-detector",
   "version": "0.0.1",
-  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -13,6 +12,7 @@
   "dependencies": {
     "@solana-eda/database": "workspace:*",
     "@solana-eda/events": "workspace:*",
+    "@solana-eda/rabbitmq": "workspace:*",
     "@solana-eda/solana-client": "workspace:*",
     "@solana-eda/types": "workspace:*",
     "@solana/web3.js": "^1.95.8",
