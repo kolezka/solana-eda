@@ -6,15 +6,29 @@ import {
   PoolParser,
   ParsedPoolData,
 } from '@solana-eda/solana-client';
-import { PrismaClient, LiquidityPoolRepository } from '@solana-eda/database';
-import { createLiquidityEvent, CHANNELS } from '@solana-eda/events';
+import {
+  PrismaClient,
+  LiquidityPoolRepository,
+  DiscoveredPoolRepository,
+} from '@solana-eda/database';
+import {
+  createLiquidityEvent,
+  createPoolDiscoveredEvent,
+  CHANNELS,
+} from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 dotenv.config();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const prisma = new PrismaClient(undefined as never);
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+const prisma = new PrismaClient({ adapter });
+
 const poolRepo = new LiquidityPoolRepository(prisma);
+const discoveredPoolRepo = new DiscoveredPoolRepository(prisma);
 const workerStatusRepo = new WorkerStatusRepository(prisma);
 
 // Known liquidity pools to monitor (Raydium, Orca, Meteora)
@@ -22,14 +36,28 @@ const workerStatusRepo = new WorkerStatusRepository(prisma);
 const POOLS_TO_MONITOR = process.env.MONITORED_POOLS
   ? process.env.MONITORED_POOLS.split(',')
   : [
-      // Orca SOL/USDC Whirlpool
-      '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm',
-      // Raydium SOL/USDC pool
-      '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2',
+      // === Orca Whirlpools ===
+      '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm', // SOL/USDC
+      'HJPjoWUviZJt6qGShA2qtmxH2kDwEuHxdY2uHqxKuWwq', // SOL/USDT
+      '7q3KF6H6ds8WvxKqQLtXBwDxVWPt2wJmDPGhkWrGt9Xg', // JUP/SOL
+
+      // === Raydium AMM Pools ===
+      '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2', // SOL/USDC
+      'DV1fjmLyYkGhNF2Uo5G1gJTrbFZfVNFQ7nYVMfNycMTs', // SOL/USDT
+      'FWmaPZQCfA8u2TpXpZCYb9vWfgE7qvnhHEtBodHnRkZr', // RAY/SOL
+
+      // === Raydium CLMM (Concentrated Liquidity) ===
+      '3gSjs6MqyHFsp8DXvaKvVUJjV7qg5itf9qmUGuhnSaWH', // USDC/SOL CLMM
+
+      // === Meteora DLMM ===
+      '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm', // Example (replace with actual Meteora pools)
     ];
 
 // Minimum change threshold for emitting events (default 5%)
 const CHANGE_THRESHOLD = Number(process.env.CHANGE_THRESHOLD || '5');
+
+// Auto-subscribe to newly discovered markets
+const AUTO_SUBSCRIBE_DISCOVERED = process.env.AUTO_SUBSCRIBE_DISCOVERED !== 'false';
 
 interface PoolState {
   address: string;
@@ -52,10 +80,12 @@ class LiquidityMonitorWorker {
   private workerName = 'liquidity-monitor';
   private poolStates: Map<string, PoolState>;
   private historicalStates: Map<string, ParsedPoolData[]>;
+  private dynamicPools: Set<string>; // Pools discovered via market events
   private metrics = {
     eventsProcessed: 0,
     errors: 0,
     poolsMonitored: 0,
+    dynamicPoolsAdded: 0,
     startTime: Date.now(),
   };
 
@@ -63,11 +93,18 @@ class LiquidityMonitorWorker {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const wsUrl = process.env.SOLANA_WS_URL || 'wss://api.mainnet-beta.solana.com';
 
-    this.connection = new SolanaConnectionManager(rpcUrl, wsUrl);
+    // Debug logging
+    console.log('[LiquidityMonitor] rpcUrl:', rpcUrl);
+    console.log('[LiquidityMonitor] rpcUrl type:', typeof rpcUrl);
+    console.log('[LiquidityMonitor] rpcUrl length:', rpcUrl?.length);
+    console.log('[LiquidityMonitor] rpcUrl starts with http?:', rpcUrl?.startsWith('http'));
+
+    this.connection = new SolanaConnectionManager(rpcUrl);
     this.watcher = new AccountWatcher(this.connection);
     this.poolParser = new PoolParser();
     this.poolStates = new Map();
     this.historicalStates = new Map();
+    this.dynamicPools = new Set();
   }
 
   async start() {
@@ -82,6 +119,11 @@ class LiquidityMonitorWorker {
     // Subscribe to pool changes
     await this.subscribeToPools();
 
+    // Subscribe to market discovery events for auto-subscription
+    if (AUTO_SUBSCRIBE_DISCOVERED) {
+      await this.subscribeToMarketDiscovery();
+    }
+
     console.log(`[LiquidityMonitor] Worker started successfully`);
   }
 
@@ -90,6 +132,12 @@ class LiquidityMonitorWorker {
     this.running = false;
 
     this.watcher.unwatchAll();
+
+    // Unsubscribe from market discovery events
+    if (AUTO_SUBSCRIBE_DISCOVERED) {
+      await redis.unsubscribe(CHANNELS.EVENTS_MARKETS);
+    }
+
     await this.updateWorkerStatus('STOPPED');
     await redis.quit();
     await this.connection.close();
@@ -213,6 +261,172 @@ class LiquidityMonitorWorker {
 
     // Keep process alive
     await this.keepAlive();
+  }
+
+  /**
+   * Subscribe to market discovery events for auto-subscription to new pools
+   */
+  private async subscribeToMarketDiscovery() {
+    try {
+      console.log(`[LiquidityMonitor] Subscribing to market discovery events...`);
+
+      await redis.subscribe(CHANNELS.EVENTS_MARKETS);
+
+      redis.on('message', (channel, message) => {
+        if (channel === CHANNELS.EVENTS_MARKETS && this.running) {
+          try {
+            const event = JSON.parse(message);
+            if (event.type === 'MARKET_DISCOVERED') {
+              this.handleMarketDiscovered(event).catch((error) => {
+                console.error(`[LiquidityMonitor] Error handling market discovered:`, error);
+                this.metrics.errors++;
+              });
+            }
+          } catch (error) {
+            console.error(`[LiquidityMonitor] Error parsing market event:`, error);
+          }
+        }
+      });
+
+      console.log(`[LiquidityMonitor] Subscribed to market discovery events`);
+    } catch (error) {
+      console.error(`[LiquidityMonitor] Error in subscribeToMarketDiscovery:`, error);
+      this.metrics.errors++;
+    }
+  }
+
+  /**
+   * Handle market discovered event
+   */
+  private async handleMarketDiscovered(event: any) {
+    try {
+      const { data } = event;
+
+      // For OpenBook markets, we need to find the associated pool
+      // For Raydium pools, the market address is often the pool address
+      const marketAddress = data.marketAddress;
+      const dexType = data.dexType;
+
+      console.log(
+        `[LiquidityMonitor] Market discovered: ${marketAddress.slice(0, 8)}... (${dexType})`,
+      );
+
+      // Check if this is a pool we can monitor
+      if (dexType === 'RAYDIUM' || dexType === 'ORCA' || dexType === 'METEORA') {
+        // These are direct pool addresses
+        await this.addDynamicPool(marketAddress, dexType);
+      } else if (dexType === 'OPENBOOK') {
+        // OpenBook markets may have associated pools
+        // For now, we skip OpenBook as it requires additional lookups
+        console.debug(`[LiquidityMonitor] OpenBook market - skipping pool monitoring`);
+      }
+    } catch (error) {
+      console.error(`[LiquidityMonitor] Error handling market discovered:`, error);
+    }
+  }
+
+  /**
+   * Add a dynamically discovered pool to monitoring
+   */
+  private async addDynamicPool(poolAddress: string, dexType: string) {
+    try {
+      // Check if already monitoring
+      if (this.poolStates.has(poolAddress) || this.dynamicPools.has(poolAddress)) {
+        console.debug(`[LiquidityMonitor] Pool ${poolAddress.slice(0, 8)}... already monitored`);
+        return;
+      }
+
+      console.log(`[LiquidityMonitor] Adding dynamic pool: ${poolAddress.slice(0, 8)}... (${dexType})`);
+
+      // Get pool account info
+      const accountInfo = await this.connection.getAccountInfo(
+        new (require('@solana/web3.js').PublicKey)(poolAddress),
+      );
+
+      if (!accountInfo) {
+        console.warn(`[LiquidityMonitor] Could not fetch pool ${poolAddress}`);
+        return;
+      }
+
+      // Parse pool
+      const parsedPool = this.poolParser.parsePool(
+        new (require('@solana/web3.js').PublicKey)(poolAddress),
+        accountInfo,
+      );
+
+      if (!parsedPool) {
+        console.warn(`[LiquidityMonitor] Could not parse pool ${poolAddress}`);
+        return;
+      }
+
+      // Create pool state
+      const state: PoolState = {
+        address: poolAddress,
+        dexType: parsedPool.dexType,
+        oldTvl: parsedPool.tvl,
+        newTvl: parsedPool.tvl,
+        oldPrice: parsedPool.price,
+        newPrice: parsedPool.price,
+        volume24h: 0,
+        tokenA: parsedPool.tokenA.symbol,
+        tokenB: parsedPool.tokenB.symbol,
+        lastUpdate: Date.now(),
+      };
+
+      this.poolStates.set(poolAddress, state);
+      this.historicalStates.set(poolAddress, [parsedPool]);
+      this.dynamicPools.add(poolAddress);
+
+      // Save to database as discovered pool
+      await discoveredPoolRepo.create({
+        address: poolAddress,
+        dexType: parsedPool.dexType as any,
+        tokenA: parsedPool.tokenA.symbol,
+        tokenB: parsedPool.tokenB.symbol,
+        initialTvl: parsedPool.tvl,
+        status: 'MONITORING',
+      });
+
+      // Publish pool discovered event
+      const event = createPoolDiscoveredEvent({
+        poolAddress,
+        dexType: parsedPool.dexType as any,
+        tokenA: parsedPool.tokenA.symbol,
+        tokenB: parsedPool.tokenB.symbol,
+        initialTvl: parsedPool.tvl.toString(),
+        discoveredAt: new Date().toISOString(),
+        discoverySource: 'market-detector',
+        poolData: {
+          lpMint: undefined, // Would need additional parsing
+          feeRate: parsedPool.feeRate,
+        },
+      });
+
+      await redis.publish(CHANNELS.EVENTS_POOLS, JSON.stringify(event));
+
+      // Subscribe to pool changes
+      this.watcher.watchAccount(poolAddress, async (accountInfo, context) => {
+        if (!this.running) return;
+
+        try {
+          await this.handlePoolChange(poolAddress, accountInfo);
+        } catch (error) {
+          console.error(`[LiquidityMonitor] Error handling pool change:`, error);
+          this.metrics.errors++;
+          await this.updateWorkerStatus('RUNNING');
+        }
+      });
+
+      this.metrics.dynamicPoolsAdded++;
+      this.metrics.poolsMonitored++;
+
+      console.log(
+        `[LiquidityMonitor] Now monitoring ${poolAddress.slice(0, 8)}... (${parsedPool.tokenA.symbol}/${parsedPool.tokenB.symbol})`,
+      );
+    } catch (error) {
+      console.error(`[LiquidityMonitor] Error adding dynamic pool:`, error);
+      this.metrics.errors++;
+    }
   }
 
   private async handlePoolChange(poolAddress: string, accountInfo: any) {

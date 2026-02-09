@@ -8,6 +8,9 @@ import type {
   PositionClosedEvent,
   WorkerStatusEvent,
   PriceUpdateEvent,
+  MarketDiscoveredEvent,
+  TokenValidatedEvent,
+  PoolDiscoveredEvent,
 } from '@solana-eda/types';
 import Redis from 'ioredis';
 
@@ -21,6 +24,9 @@ export const CHANNELS = {
   EVENTS_POSITIONS: 'events:positions',
   EVENTS_DEX_COMPARISON: 'events:dex-comparison',
   EVENTS_PRICE: 'events:price',
+  EVENTS_MARKETS: 'events:markets',
+  EVENTS_TOKENS: 'events:tokens',
+  EVENTS_POOLS: 'events:pools',
   WORKERS_STATUS: 'workers:status',
   COMMANDS_TRADING: 'commands:trading',
   COMMANDS_WORKERS: 'commands:workers',
@@ -165,6 +171,73 @@ export const DEXQuoteComparisonEventSchema = z.object({
   }),
 });
 
+export const MarketDiscoveredEventSchema = z.object({
+  type: z.literal('MARKET_DISCOVERED'),
+  timestamp: z.string(),
+  id: z.string(),
+  data: z.object({
+    marketAddress: z.string(),
+    baseMint: z.string(),
+    quoteMint: z.string(),
+    dexType: z.enum(['OPENBOOK', 'RAYDIUM', 'ORCA', 'METEORA']),
+    discoveredAt: z.string(),
+    source: z.string(),
+    marketData: z
+      .object({
+        name: z.string().optional(),
+        minOrderSize: z.string().optional(),
+        tickSize: z.string().optional(),
+      })
+      .optional(),
+  }),
+});
+
+export const TokenValidatedEventSchema = z.object({
+  type: z.literal('TOKEN_VALIDATED'),
+  timestamp: z.string(),
+  id: z.string(),
+  data: z.object({
+    token: z.string(),
+    isRenounced: z.boolean().optional(),
+    isBurned: z.boolean().optional(),
+    isLocked: z.boolean().optional(),
+    lpBurnedCount: z.number().optional(),
+    confidence: z.number(),
+    validatedAt: z.string(),
+    txSignature: z.string().optional(),
+    validationDetails: z
+      .object({
+        mintAuthorityRenounced: z.boolean(),
+        supplyBurned: z.boolean(),
+        supplyBurnedPercent: z.number().optional(),
+        lpTokensBurned: z.boolean(),
+        liquidityLocked: z.boolean(),
+      })
+      .optional(),
+  }),
+});
+
+export const PoolDiscoveredEventSchema = z.object({
+  type: z.literal('POOL_DISCOVERED'),
+  timestamp: z.string(),
+  id: z.string(),
+  data: z.object({
+    poolAddress: z.string(),
+    dexType: z.enum(['RAYDIUM', 'ORCA', 'METEORA']),
+    tokenA: z.string(),
+    tokenB: z.string(),
+    initialTvl: z.string(),
+    discoveredAt: z.string(),
+    discoverySource: z.string(),
+    poolData: z
+      .object({
+        lpMint: z.string().optional(),
+        feeRate: z.number().optional(),
+      })
+      .optional(),
+  }),
+});
+
 // Combined event schema for validation
 export const EventSchema = z.discriminatedUnion('type', [
   BurnEventSchema,
@@ -175,6 +248,9 @@ export const EventSchema = z.discriminatedUnion('type', [
   WorkerStatusEventSchema,
   PriceUpdateEventSchema,
   DEXQuoteComparisonEventSchema,
+  MarketDiscoveredEventSchema,
+  TokenValidatedEventSchema,
+  PoolDiscoveredEventSchema,
 ]);
 
 // Event type inference for type safety
@@ -212,6 +288,18 @@ export function isPriceUpdateEvent(event: AnyEvent): event is PriceUpdateEvent {
 
 export function isDEXQuoteComparisonEvent(event: AnyEvent): event is DEXQuoteComparisonEvent {
   return event.type === 'DEX_QUOTE_COMPARISON';
+}
+
+export function isMarketDiscoveredEvent(event: AnyEvent): event is MarketDiscoveredEvent {
+  return event.type === 'MARKET_DISCOVERED';
+}
+
+export function isTokenValidatedEvent(event: AnyEvent): event is TokenValidatedEvent {
+  return event.type === 'TOKEN_VALIDATED';
+}
+
+export function isPoolDiscoveredEvent(event: AnyEvent): event is PoolDiscoveredEvent {
+  return event.type === 'POOL_DISCOVERED';
 }
 
 /**
@@ -300,6 +388,39 @@ export function createDEXQuoteComparisonEvent(
     type: 'DEX_QUOTE_COMPARISON',
     timestamp: new Date().toISOString(),
     id: `dex-comparison-${Date.now()}`,
+    data,
+  };
+}
+
+export function createMarketDiscoveredEvent(
+  data: z.infer<typeof MarketDiscoveredEventSchema>['data'],
+): AnyEvent {
+  return {
+    type: 'MARKET_DISCOVERED',
+    timestamp: new Date().toISOString(),
+    id: `market-${Date.now()}`,
+    data,
+  };
+}
+
+export function createTokenValidatedEvent(
+  data: z.infer<typeof TokenValidatedEventSchema>['data'],
+): AnyEvent {
+  return {
+    type: 'TOKEN_VALIDATED',
+    timestamp: new Date().toISOString(),
+    id: `validation-${Date.now()}`,
+    data,
+  };
+}
+
+export function createPoolDiscoveredEvent(
+  data: z.infer<typeof PoolDiscoveredEventSchema>['data'],
+): AnyEvent {
+  return {
+    type: 'POOL_DISCOVERED',
+    timestamp: new Date().toISOString(),
+    id: `pool-${Date.now()}`,
     data,
   };
 }

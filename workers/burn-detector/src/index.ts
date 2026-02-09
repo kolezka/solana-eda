@@ -5,20 +5,40 @@ import {
   SolanaConnectionManager,
   TransactionParser,
   ParsedBurnTransaction,
+  TokenValidator,
 } from '@solana-eda/solana-client';
-import { PrismaClient, BurnEventRepository } from '@solana-eda/database';
-import { createBurnEvent, CHANNELS } from '@solana-eda/events';
+import {
+  PrismaClient,
+  BurnEventRepository,
+  TokenValidationRepository,
+} from '@solana-eda/database';
+import {
+  createBurnEvent,
+  createTokenValidatedEvent,
+  CHANNELS,
+} from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
+import { PrismaPg } from '@prisma/adapter-pg';
 
 dotenv.config();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const prisma = new PrismaClient(undefined as never);
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+const prisma = new PrismaClient({ adapter });
+
 const burnEventRepo = new BurnEventRepository(prisma);
+const tokenValidationRepo = new TokenValidationRepository(prisma);
 const workerStatusRepo = new WorkerStatusRepository(prisma);
 
 // Minimum burn threshold - ignore burns below this amount
 const MIN_BURN_THRESHOLD = Number(process.env.MIN_BURN_THRESHOLD || '1000000');
+
+// Validation settings
+const CHECK_IF_MINT_IS_RENOUNCED = process.env.CHECK_IF_MINT_IS_RENOUNCED === 'true';
+const CHECK_IF_IS_LOCKED = process.env.CHECK_IF_IS_LOCKED === 'true';
+const MIN_LP_BURN_THRESHOLD = Number(process.env.MIN_LP_BURN_THRESHOLD || '100');
 
 // Duplicate prevention window in milliseconds (5 minutes)
 const DUPLICATE_WINDOW = 5 * 60 * 1000;
@@ -26,30 +46,41 @@ const DUPLICATE_WINDOW = 5 * 60 * 1000;
 // Track recently processed signatures for deduplication
 const recentSignatures = new Map<string, number>();
 
+// Track tokens that have been validated recently (1 hour cache)
+const recentlyValidatedTokens = new Map<string, number>();
+
 class BurnDetectorWorker {
   private connection: SolanaConnectionManager;
   private parser: TransactionParser;
+  private tokenValidator: TokenValidator;
   private running = false;
   private workerName = 'burn-detector';
   private subscriptionId: number | null = null;
+  private marketSubscriptionId: number | null = null;
   private metrics = {
     eventsProcessed: 0,
     errors: 0,
     burnsDetected: 0,
     duplicatesFiltered: 0,
     belowThresholdFiltered: 0,
+    tokensValidated: 0,
     startTime: Date.now(),
   };
 
   constructor() {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-    const wsUrl = process.env.SOLANA_WS_URL || 'wss://api.mainnet-beta.solana.com';
+    const wsUrl = process.env.SOLANA_WS_URL || 'ws://api.mainnet-beta.solana.com';
 
-    this.connection = new SolanaConnectionManager(rpcUrl, wsUrl);
+    console.log({rpcUrl, wsUrl})
+
+    this.connection = new SolanaConnectionManager(rpcUrl, "http://api.mainnet-beta.solana.com");
     this.parser = new TransactionParser();
+    this.tokenValidator = new TokenValidator();
 
     // Clean up old signatures periodically
     setInterval(() => this.cleanOldSignatures(), 60000);
+    // Clean up validated tokens periodically
+    setInterval(() => this.cleanOldValidations(), 300000); // Every 5 minutes
   }
 
   async start() {
@@ -64,6 +95,9 @@ class BurnDetectorWorker {
     // Subscribe to new transactions
     await this.subscribeToTransactions();
 
+    // Subscribe to market discovery events for token validation
+    await this.subscribeToMarketEvents();
+
     console.log(`[BurnDetector] Worker started successfully`);
   }
 
@@ -71,13 +105,16 @@ class BurnDetectorWorker {
     console.log(`[BurnDetector] Stopping worker...`);
     this.running = false;
 
-    // Remove subscription
+    // Remove subscriptions
     if (this.subscriptionId !== null) {
       const wsConn = this.connection.getWsConnection();
       if (wsConn) {
         wsConn.removeOnLogsListener(this.subscriptionId);
       }
     }
+
+    // Unsubscribe from Redis channels
+    await redis.unsubscribe(CHANNELS.EVENTS_MARKETS);
 
     await this.updateWorkerStatus('STOPPED');
     await redis.quit();
@@ -162,6 +199,170 @@ class BurnDetectorWorker {
           this.subscribeToTransactions();
         }
       }, retryDelay);
+    }
+  }
+
+  /**
+   * Subscribe to market discovery events for token validation
+   */
+  private async subscribeToMarketEvents() {
+    try {
+      console.log(`[BurnDetector] Subscribing to market discovery events...`);
+
+      // Subscribe to market discovery channel
+      await redis.subscribe(CHANNELS.EVENTS_MARKETS);
+
+      // Handle incoming messages
+      redis.on('message', (channel, message) => {
+        if (channel === CHANNELS.EVENTS_MARKETS && this.running) {
+          try {
+            const event = JSON.parse(message);
+            if (event.type === 'MARKET_DISCOVERED') {
+              this.handleMarketDiscovered(event).catch((error) => {
+                console.error(`[BurnDetector] Error handling market discovered:`, error);
+                this.metrics.errors++;
+              });
+            }
+          } catch (error) {
+            console.error(`[BurnDetector] Error parsing market event:`, error);
+          }
+        }
+      });
+
+      console.log(`[BurnDetector] Subscribed to market discovery events`);
+    } catch (error) {
+      console.error(`[BurnDetector] Error in subscribeToMarketEvents:`, error);
+      this.metrics.errors++;
+    }
+  }
+
+  /**
+   * Handle market discovered event
+   */
+  private async handleMarketDiscovered(event: any) {
+    try {
+      const { data } = event;
+      const tokenMint = data.baseMint;
+
+      console.log(`[BurnDetector] Market discovered for token: ${tokenMint.slice(0, 8)}...`);
+
+      // Check if we've validated this token recently
+      if (recentlyValidatedTokens.has(tokenMint)) {
+        console.debug(`[BurnDetector] Token ${tokenMint.slice(0, 8)}... validated recently, skipping`);
+        return;
+      }
+
+      // Perform token validation
+      await this.validateToken(tokenMint);
+    } catch (error) {
+      console.error(`[BurnDetector] Error handling market discovered:`, error);
+    }
+  }
+
+  /**
+   * Validate a token mint
+   */
+  private async validateToken(tokenMint: string) {
+    try {
+      console.log(`[BurnDetector] Validating token: ${tokenMint.slice(0, 8)}...`);
+
+      // Get mint account info
+      const mintAccountInfo = await this.connection.getAccountInfo(new PublicKey(tokenMint));
+      if (!mintAccountInfo) {
+        console.warn(`[BurnDetector] Could not fetch mint account for ${tokenMint}`);
+        return;
+      }
+
+      // Parse mint data
+      const mintData = this.tokenValidator.parseMintAccount(tokenMint, mintAccountInfo);
+
+      // Check if renounced
+      const isRenounced = CHECK_IF_MINT_IS_RENOUNCED
+        ? this.tokenValidator.checkMintable(mintData)
+        : undefined;
+
+      // Check if supply is burned
+      const supplyCheck = this.tokenValidator.checkSupplyBurned(mintData);
+      const isBurned = supplyCheck.isBurned;
+
+      // Check lock status (if enabled)
+      const isLocked = CHECK_IF_IS_LOCKED ? false : undefined; // Would need pool state
+
+      // Calculate confidence
+      const confidence = this.tokenValidator.calculateConfidence(
+        isRenounced ?? false,
+        isBurned,
+        false, // LP tokens burned - would need pool data
+        isLocked ?? false,
+      );
+
+      const validatedAt = new Date();
+      const validationData = {
+        token: tokenMint,
+        isRenounced,
+        isBurned,
+        isLocked,
+        lpBurnedCount: 0,
+        confidence,
+        validatedAt,
+        validationDetails: {
+          mintAuthorityRenounced: isRenounced ?? false,
+          supplyBurned: isBurned,
+          supplyBurnedPercent: supplyCheck.burnedPercent,
+          lpTokensBurned: false,
+          liquidityLocked: isLocked ?? false,
+        },
+      };
+
+      // Save to database
+      await tokenValidationRepo.create(validationData);
+
+      // Publish validation event
+      const event = createTokenValidatedEvent({
+        ...validationData,
+        validatedAt: validatedAt.toISOString(),
+      });
+      await redis.publish(CHANNELS.EVENTS_TOKENS, JSON.stringify(event));
+
+      // Mark as validated
+      recentlyValidatedTokens.set(tokenMint, Date.now());
+
+      this.metrics.tokensValidated++;
+
+      console.log(
+        `[BurnDetector] Token validated: ${tokenMint.slice(0, 8)}... - Confidence: ${confidence.toFixed(2)}`,
+      );
+
+      // Update status periodically
+      if (this.metrics.tokensValidated % 10 === 0) {
+        await this.updateWorkerStatus('RUNNING');
+        console.log(
+          `[BurnDetector] Validated ${this.metrics.tokensValidated} tokens`,
+        );
+      }
+    } catch (error) {
+      console.error(`[BurnDetector] Error validating token ${tokenMint}:`, error);
+      this.metrics.errors++;
+    }
+  }
+
+  /**
+   * Clean up old validated tokens from cache
+   */
+  private cleanOldValidations() {
+    const now = Date.now();
+    const cutoff = now - 60 * 60 * 1000; // 1 hour
+
+    let cleaned = 0;
+    for (const [token, timestamp] of recentlyValidatedTokens.entries()) {
+      if (timestamp < cutoff) {
+        recentlyValidatedTokens.delete(token);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      console.debug(`[BurnDetector] Cleaned ${cleaned} old validations from cache`);
     }
   }
 
@@ -255,7 +456,7 @@ class BurnDetectorWorker {
       if (this.metrics.eventsProcessed % 10 === 0) {
         await this.updateWorkerStatus('RUNNING');
         console.log(
-          `[BurnDetector] Stats: ${this.metrics.burnsDetected} burns, ${this.metrics.duplicatesFiltered} duplicates filtered, ${this.metrics.belowThresholdFiltered} below threshold`,
+          `[BurnDetector] Stats: ${this.metrics.burnsDetected} burns, ${this.metrics.duplicatesFiltered} duplicates filtered, ${this.metrics.belowThresholdFiltered} below threshold, ${this.metrics.tokensValidated} tokens validated`,
         );
       }
     } catch (error) {

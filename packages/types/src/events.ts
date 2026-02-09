@@ -8,7 +8,10 @@ export type EventType =
   | 'POSITION_CLOSED'
   | 'WORKER_STATUS'
   | 'DEX_QUOTE_COMPARISON'
-  | 'PRICE_UPDATE';
+  | 'PRICE_UPDATE'
+  | 'MARKET_DISCOVERED'
+  | 'TOKEN_VALIDATED'
+  | 'POOL_DISCOVERED';
 
 export interface BaseEvent {
   type: EventType;
@@ -134,6 +137,61 @@ export interface PriceUpdateEvent extends BaseEvent {
   };
 }
 
+export interface MarketDiscoveredEvent extends BaseEvent {
+  type: 'MARKET_DISCOVERED';
+  data: {
+    marketAddress: string;
+    baseMint: string;
+    quoteMint: string;
+    dexType: 'OPENBOOK' | 'RAYDIUM' | 'ORCA' | 'METEORA';
+    discoveredAt: string;
+    source: string;
+    marketData?: {
+      name?: string;
+      minOrderSize?: string;
+      tickSize?: string;
+    };
+  };
+}
+
+export interface TokenValidatedEvent extends BaseEvent {
+  type: 'TOKEN_VALIDATED';
+  data: {
+    token: string;
+    isRenounced?: boolean;
+    isBurned?: boolean;
+    isLocked?: boolean;
+    lpBurnedCount?: number;
+    confidence: number;
+    validatedAt: string;
+    txSignature?: string;
+    validationDetails?: {
+      mintAuthorityRenounced: boolean;
+      supplyBurned: boolean;
+      supplyBurnedPercent?: number;
+      lpTokensBurned: boolean;
+      liquidityLocked: boolean;
+    };
+  };
+}
+
+export interface PoolDiscoveredEvent extends BaseEvent {
+  type: 'POOL_DISCOVERED';
+  data: {
+    poolAddress: string;
+    dexType: 'RAYDIUM' | 'ORCA' | 'METEORA';
+    tokenA: string;
+    tokenB: string;
+    initialTvl: string;
+    discoveredAt: string;
+    discoverySource: string;
+    poolData?: {
+      lpMint?: string;
+      feeRate?: number;
+    };
+  };
+}
+
 export type AnyEvent =
   | BurnDetectedEvent
   | LiquidityChangedEvent
@@ -142,4 +200,7 @@ export type AnyEvent =
   | PositionClosedEvent
   | WorkerStatusEvent
   | DEXQuoteComparisonEvent
-  | PriceUpdateEvent;
+  | PriceUpdateEvent
+  | MarketDiscoveredEvent
+  | TokenValidatedEvent
+  | PoolDiscoveredEvent;

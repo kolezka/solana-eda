@@ -15,9 +15,15 @@ export class SolanaConnectionManager {
     rpcUrl: string,
     private wsUrl?: string,
   ) {
-    this.connection = new Connection(rpcUrl);
+    // Ensure the URL is valid and properly formatted
+    const normalizedUrl = rpcUrl.trim();
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+      throw new Error(`Invalid RPC URL: ${rpcUrl}. URL must start with http:// or https://`);
+    }
+    this.connection = new Connection(normalizedUrl);
     if (wsUrl) {
-      this.wsConnection = new Connection(wsUrl, 'confirmed');
+      const normalizedWsUrl = wsUrl.trim();
+      this.wsConnection = new Connection(normalizedWsUrl, 'confirmed');
     }
   }
 

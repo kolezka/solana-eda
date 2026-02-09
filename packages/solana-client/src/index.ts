@@ -6,6 +6,10 @@ export * from './pool-parser';
 export * from './rate-limiter';
 export * from './batch-client';
 
+// Market and token parsing
+export * from './market-parser';
+export * from './token-validator';
+
 // DEX types and interfaces
 export * from './types';
 

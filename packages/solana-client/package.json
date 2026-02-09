@@ -1,0 +1,38 @@
+{
+  "name": "@solana-eda/solana-client",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@solana-eda/types": "workspace:*",
+    "@solana/web3.js": "^1.98.0",
+    "@jup-ag/api": "^6.0.0",
+    "@orca-so/sdk": "^1.2.26",
+    "@raydium-io/raydium-sdk-v2": "^0.2.32-alpha",
+    "@meteora-ag/dlmm": "^1.9.3",
+    "@solana/spl-token": "^0.4.1",
+    "@coral-xyz/anchor": "^0.29.0",
+    "decimal.js": "^10.4.0",
+    "@types/jest": "^29.5.11",
+    "ioredis": "^5.3.2",
+    "ts-jest": "^29.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}

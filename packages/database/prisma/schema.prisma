@@ -113,3 +113,53 @@ model PriceRecord {
   @@index([token, timestamp])
   @@index([token])
 }
+
+model MarketRecord {
+  id          String   @id @default(cuid())
+  address     String   @unique
+  baseMint    String
+  quoteMint   String
+  dexType     String // 'OPENBOOK', 'RAYDIUM', 'ORCA', 'METEORA'
+  discoveredAt DateTime @default(now())
+  status      String   @default("DISCOVERED") // DISCOVERED, VALIDATING, VALIDATED, REJECTED
+  validations Json?    // Store validation results
+  marketData  Json?    // Additional market data (name, minOrderSize, tickSize, etc.)
+
+  @@index([baseMint])
+  @@index([quoteMint])
+  @@index([dexType])
+  @@index([status])
+}
+
+model TokenValidationRecord {
+  id              String   @id @default(cuid())
+  token           String
+  isRenounced     Boolean?
+  isBurned        Boolean?
+  isLocked        Boolean?
+  lpBurnedCount   Int?
+  confidence      Decimal
+  validatedAt     DateTime @default(now())
+  txSignature     String?
+  validationDetails Json?  // Detailed validation results
+
+  @@index([token])
+  @@index([validatedAt])
+}
+
+model DiscoveredPool {
+  id          String   @id @default(cuid())
+  address     String   @unique
+  dexType     String   // 'RAYDIUM', 'ORCA', 'METEORA'
+  tokenA      String
+  tokenB      String
+  initialTvl  Decimal
+  discoveredAt DateTime @default(now())
+  status      String   @default("MONITORING") // MONITORING, IGNORED, ERROR
+  poolData    Json?    // Additional pool data (lpMint, feeRate, etc.)
+
+  @@index([tokenA])
+  @@index([tokenB])
+  @@index([dexType])
+  @@index([status])
+}

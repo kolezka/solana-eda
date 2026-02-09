@@ -7,3 +7,6 @@ export * from './repositories/price.repository';
 export * from './repositories/trade.repository';
 export * from './repositories/worker-status.repository';
 export * from './repositories/trade-settings.repository';
+export * from './repositories/market.repository';
+export * from './repositories/token-validation.repository';
+export * from './repositories/discovered-pool.repository';

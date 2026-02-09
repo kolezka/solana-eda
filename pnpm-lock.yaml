@@ -355,7 +355,7 @@ importers:
         specifier: ^0.4.1
         version: 0.4.14(@solana/web3.js@1.98.4)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)
       '@solana/web3.js':
-        specifier: ^1.95.0
+        specifier: ^1.98.0
         version: 1.98.4(typescript@5.9.3)
       '@types/jest':
         specifier: ^29.5.11
@@ -401,6 +401,9 @@ importers:
 
   workers/burn-detector:
     dependencies:
+      '@prisma/adapter-pg':
+        specifier: ^7.3.0
+        version: 7.3.0
       '@solana-eda/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -435,6 +438,9 @@ importers:
 
   workers/liquidity-monitor:
     dependencies:
+      '@prisma/adapter-pg':
+        specifier: ^7.3.0
+        version: 7.3.0
       '@solana-eda/database':
         specifier: workspace:*
         version: link:../../packages/database
@@ -465,6 +471,43 @@ importers:
         version: 4.21.0
       typescript:
         specifier: ^5.3.3
+        version: 5.9.3
+
+  workers/market-detector:
+    dependencies:
+      '@prisma/adapter-pg':
+        specifier: ^6.1.0
+        version: 6.19.2
+      '@prisma/client':
+        specifier: ^6.1.0
+        version: 6.19.2(typescript@5.9.3)
+      '@solana-eda/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@solana-eda/events':
+        specifier: workspace:*
+        version: link:../../packages/events
+      '@solana-eda/solana-client':
+        specifier: workspace:*
+        version: link:../../packages/solana-client
+      '@solana-eda/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@solana/web3.js':
+        specifier: ^1.95.8
+        version: 1.98.4(typescript@5.9.3)
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.6.1
+      ioredis:
+        specifier: ^5.4.1
+        version: 5.9.2
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.19.10
+      typescript:
+        specifier: ^5.7.3
         version: 5.9.3
 
   workers/price-aggregator:
@@ -2353,6 +2396,16 @@ packages:
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
     dev: true
 
+  /@prisma/adapter-pg@6.19.2:
+    resolution: {integrity: sha512-t80uX4u4+V/F/OO220LVFY2nsXRGvt8x7PDDveQJJUrGAq4yKHiHiwxOb/PusUSioKkJrgLZjzLwGrpPYG4arw==}
+    dependencies:
+      '@prisma/driver-adapter-utils': 6.19.2
+      pg: 8.18.0
+      postgres-array: 3.0.4
+    transitivePeerDependencies:
+      - pg-native
+    dev: false
+
   /@prisma/adapter-pg@7.3.0:
     resolution: {integrity: sha512-iuYQMbIPO6i9O45Fv8TB7vWu00BXhCaNAShenqF7gLExGDbnGp5BfFB4yz1K59zQ59jF6tQ9YHrg0P6/J3OoLg==}
     dependencies:
@@ -2376,6 +2429,22 @@ packages:
     peerDependenciesMeta:
       prisma:
         optional: true
+    dev: false
+
+  /@prisma/client@6.19.2(typescript@5.9.3):
+    resolution: {integrity: sha512-gR2EMvfK/aTxsuooaDA32D8v+us/8AAet+C3J1cc04SW35FPdZYgLF+iN4NDLUgAaUGTKdAB0CYenu1TAgGdMg==}
+    engines: {node: '>=18.18'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.1.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      typescript: 5.9.3
     dev: false
 
   /@prisma/client@7.3.0(prisma@7.3.0)(typescript@5.9.3):
@@ -2405,6 +2474,10 @@ packages:
     transitivePeerDependencies:
       - magicast
 
+  /@prisma/debug@6.19.2:
+    resolution: {integrity: sha512-lFnEZsLdFLmEVCVNdskLDCL8Uup41GDfU0LUfquw+ercJC8ODTuL0WNKgOKmYxCJVvFwf0OuZBzW99DuWmoH2A==}
+    dev: false
+
   /@prisma/debug@7.2.0:
     resolution: {integrity: sha512-YSGTiSlBAVJPzX4ONZmMotL+ozJwQjRmZweQNIq/ER0tQJKJynNkRB3kyvt37eOfsbMCXk3gnLF6J9OJ4QWftw==}
 
@@ -2433,6 +2506,12 @@ packages:
       zeptomatch: 2.1.0
     transitivePeerDependencies:
       - typescript
+
+  /@prisma/driver-adapter-utils@6.19.2:
+    resolution: {integrity: sha512-tkHsL3jhx81eXg2oqtJH/1IEs8uEeUb1RpqHtwYqdNb176u9D0mnHRZM1/cKca/XhLpq49Nnd9XDxdMfWcKAYA==}
+    dependencies:
+      '@prisma/debug': 6.19.2
+    dev: false
 
   /@prisma/driver-adapter-utils@7.3.0:
     resolution: {integrity: sha512-Wdlezh1ck0Rq2dDINkfSkwbR53q53//Eo1vVqVLwtiZ0I6fuWDGNPxwq+SNAIHnsU+FD/m3aIJKevH3vF13U3w==}
@@ -3806,6 +3885,12 @@ packages:
     resolution: {integrity: sha512-Ez8QE4DMfhjjTsES9K2dwfV258qBui7qxUsoaixZDiTzbde4U12e1pXGNu/ECsUIOi5/zoCxAQxIhQnaUQ2VvA==}
     dependencies:
       undici-types: 6.21.0
+
+  /@types/node@22.19.10:
+    resolution: {integrity: sha512-tF5VOugLS/EuDlTBijk0MqABfP8UxgYazTLo3uIn3b4yJgg26QRbVYJYsDtHrjdDUIRfP70+VfhTTc+CE1yskw==}
+    dependencies:
+      undici-types: 6.21.0
+    dev: true
 
   /@types/prop-types@15.7.15:
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}

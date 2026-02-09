@@ -1,5 +1,5 @@
 {
-  "name": "trading-bot",
+  "name": "@solana-eda/trading-bot",
   "version": "1.0.0",
   "private": true,
   "scripts": {

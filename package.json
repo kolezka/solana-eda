@@ -1,38 +1,27 @@
 {
-  "name": "@solana-eda/solana-client",
-  "version": "1.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    }
-  },
+  "name": "solana-eda",
+  "private": true,
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "test": "jest",
-    "lint": "eslint src --ext .ts"
-  },
-  "dependencies": {
-    "@solana-eda/types": "workspace:*",
-    "@solana/web3.js": "^1.98.0",
-    "@jup-ag/api": "^6.0.0",
-    "@orca-so/sdk": "^1.2.26",
-    "@raydium-io/raydium-sdk-v2": "^0.2.32-alpha",
-    "@meteora-ag/dlmm": "^1.9.3",
-    "@solana/spl-token": "^0.4.1",
-    "@coral-xyz/anchor": "^0.29.0",
-    "decimal.js": "^10.4.0",
-    "@types/jest": "^29.5.11",
-    "ioredis": "^5.3.2",
-    "ts-jest": "^29.1.1"
+    "api": "pnpm --filter @solana-eda/api",
+    "db": "pnpm --filter @solana-eda/database",
+    "frontend": "pnpm --filter @solana-eda/frontend",
+    "burn-detector": "pnpm --filter @solana-eda/burn-detector",
+    "liquidity-monitor": "pnpm --filter @solana-eda/liquidity-monitor",
+    "market-detector": "pnpm --filter @solana-eda/market-detector",
+    "price-aggregator": "pnpm --filter @solana-eda/price-aggregator",
+    "build": "pnpm --filter './packages/**' --filter './workers/**' build",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.0.0",
     "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   }
 }
