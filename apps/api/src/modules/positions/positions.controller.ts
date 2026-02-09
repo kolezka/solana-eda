@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Body, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBody } from '@nestjs/swagger';
 import { PositionsService } from './positions.service';
+import type { PositionWithTrades, Position } from '@solana-eda/database';
 
 interface PositionTrade {
   id: string;
@@ -10,13 +11,13 @@ interface PositionTrade {
   timestamp: string;
 }
 
-class Position {
+class PositionDto {
   id!: string;
   token!: string;
   amount!: string;
   entryPrice!: string;
   currentPrice!: string;
-  pnl!: string;
+  pnl!: number;
   status!: 'OPEN' | 'CLOSED';
   openedAt!: string;
   closedAt?: string;
@@ -34,12 +35,35 @@ class PortfolioStats {
   winRate!: number;
 }
 
+function mapPositionToDto(position: PositionWithTrades): PositionDto {
+  return {
+    id: position.id,
+    token: position.token,
+    amount: position.amount.toString(),
+    entryPrice: position.entryPrice.toString(),
+    currentPrice: position.currentPrice.toString(),
+    pnl: Number(position.pnl ?? 0),
+    status: position.status,
+    openedAt: position.openedAt.toISOString(),
+    closedAt: position.closedAt?.toISOString(),
+    stopLoss: position.stopLoss?.toString(),
+    takeProfit: position.takeProfit?.toString(),
+    trades: position.trades.map((trade) => ({
+      id: trade.id,
+      type: trade.type,
+      amount: trade.amount.toString(),
+      price: trade.price.toString(),
+      timestamp: trade.timestamp.toISOString(),
+    })),
+  };
+}
+
 @ApiTags('positions')
 @Controller('positions')
 export class PositionsController {
   constructor(private readonly positionsService: PositionsService) {}
 
-  @Get()
+  @Get('all')
   @ApiOperation({
     summary: 'Get all positions',
     description: 'Retrieves all trading positions (currently returns open positions).',
@@ -47,10 +71,11 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved positions',
-    type: [Position],
+    type: [PositionDto],
   })
-  async getAllPositions() {
-    return await this.positionsService.getOpenPositions();
+  async getAllPositions(): Promise<PositionDto[]> {
+    const positions = await this.positionsService.getOpenPositions();
+    return positions.map(mapPositionToDto);
   }
 
   @Get('open')
@@ -61,10 +86,11 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved open positions',
-    type: [Position],
+    type: [PositionDto],
   })
-  async getOpenPositions() {
-    return await this.positionsService.getOpenPositions();
+  async getOpenPositions(): Promise<PositionDto[]> {
+    const positions = await this.positionsService.getOpenPositions();
+    return positions.map(mapPositionToDto);
   }
 
   @Get('closed')
@@ -82,10 +108,11 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved closed positions',
-    type: [Position],
+    type: [PositionDto],
   })
-  async getClosedPositions(@Query('limit') limit: number = 50) {
-    return await this.positionsService.getClosedPositions(limit);
+  async getClosedPositions(@Query('limit') limit: number = 50): Promise<PositionDto[]> {
+    const positions = await this.positionsService.getClosedPositions(limit);
+    return positions.map(mapPositionToDto);
   }
 
   @Get('stats')
@@ -98,7 +125,14 @@ export class PositionsController {
     description: 'Successfully retrieved portfolio stats',
     type: PortfolioStats,
   })
-  async getPortfolioStats() {
+  async getPortfolioStats(): Promise<{
+    totalPositions: number;
+    totalValue: number;
+    totalPnl: number;
+    avgPnl: number;
+    winningPositions: number;
+    losingPositions: number;
+  }> {
     return await this.positionsService.getPortfolioStats();
   }
 
@@ -115,14 +149,15 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved position',
-    type: Position,
+    type: PositionDto,
   })
   @ApiResponse({
     status: 404,
     description: 'Position not found',
   })
-  async getPositionById(@Param('id') id: string) {
-    return await this.positionsService.getPositionById(id);
+  async getPositionById(@Param('id') id: string): Promise<PositionDto | null> {
+    const position = await this.positionsService.getPositionById(id);
+    return position ? mapPositionToDto(position) : null;
   }
 
   @Get('token/:token')
@@ -138,10 +173,11 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved token positions',
-    type: [Position],
+    type: [PositionDto],
   })
-  async getPositionsByToken(@Param('token') token: string) {
-    return await this.positionsService.getPositionsByToken(token);
+  async getPositionsByToken(@Param('token') token: string): Promise<PositionDto[]> {
+    const positions = await this.positionsService.getPositionsByToken(token);
+    return positions.map(mapPositionToDto);
   }
 
   @Put(':id/price')
@@ -166,10 +202,15 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully updated position price',
-    type: Position,
+    type: PositionDto,
   })
-  async updatePositionPrice(@Param('id') id: string, @Body('currentPrice') currentPrice: number) {
-    return await this.positionsService.updatePositionPrice(id, currentPrice);
+  async updatePositionPrice(
+    @Param('id') id: string,
+    @Body('currentPrice') currentPrice: number,
+  ): Promise<PositionDto | null> {
+    const position = await this.positionsService.updatePositionPrice(id, currentPrice);
+    if (!position) return null;
+    return mapPositionToDto(position as PositionWithTrades);
   }
 
   @Post(':id/close')
@@ -199,12 +240,13 @@ export class PositionsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully closed position',
-    type: Position,
+    type: PositionDto,
   })
   async closePosition(
     @Param('id') id: string,
     @Body() body: { exitPrice: number; reason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT' },
-  ) {
-    return await this.positionsService.closePosition(id, body.exitPrice, body.reason);
+  ): Promise<PositionDto> {
+    const position = await this.positionsService.closePosition(id, body.exitPrice, body.reason);
+    return mapPositionToDto(position);
   }
 }

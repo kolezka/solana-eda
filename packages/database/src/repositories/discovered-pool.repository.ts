@@ -1,4 +1,5 @@
-import { PrismaClient, DiscoveredPool } from '../generated/client';
+import { PrismaClient } from '../generated/client';
+import type { DiscoveredPool } from '../generated/client';
 
 export interface DiscoveredPoolData {
   address: string;

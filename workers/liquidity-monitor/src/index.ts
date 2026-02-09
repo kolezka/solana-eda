@@ -1,11 +1,7 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import {
-  SolanaConnectionManager,
-  AccountWatcher,
-  PoolParser,
-  ParsedPoolData,
-} from '@solana-eda/solana-client';
+import { SolanaConnectionManager, AccountWatcher, PoolParser } from '@solana-eda/solana-client';
+import type { ParsedPoolData } from '@solana-eda/solana-client';
 import {
   PrismaClient,
   LiquidityPoolRepository,

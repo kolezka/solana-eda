@@ -1,26 +1,17 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { EventsService } from './events.service';
+import type {
+  AllEventsResponse,
+  BurnEventDto,
+  LiquidityEventDto,
+  TradeEventDto,
+  PositionEventDto,
+  PriceEventDto,
+} from './events.service';
 
-/**
- * Event response schemas for documentation
- */
-
-interface TradePosition {
-  id: string;
-  token: string;
-  status: string;
-}
-
-interface TradeItem {
-  id: string;
-  type: 'BUY' | 'SELL';
-  amount: string;
-  price: string;
-  timestamp: string;
-}
-
-class BurnEvent {
+// Swagger documentation classes (must be classes, not types)
+class BurnEventSwagger implements BurnEventDto {
   id!: string;
   txSignature!: string;
   token!: string;
@@ -30,7 +21,7 @@ class BurnEvent {
   processed!: boolean;
 }
 
-class LiquidityEvent {
+class LiquidityEventSwagger implements LiquidityEventDto {
   id!: string;
   address!: string;
   tokenA!: string;
@@ -41,19 +32,19 @@ class LiquidityEvent {
   updatedAt!: string;
 }
 
-class TradeEvent {
+class TradeEventSwagger implements TradeEventDto {
   id!: string;
   positionId!: string;
   type!: 'BUY' | 'SELL';
   amount!: string;
   price!: string;
-  signature!: string;
+  signature!: string | null;
   slippage!: number;
   timestamp!: string;
-  position?: TradePosition;
+  position?: { id: string; token: string; status: string } | null;
 }
 
-class PositionEvent {
+class PositionEventSwagger implements PositionEventDto {
   id!: string;
   token!: string;
   amount!: string;
@@ -65,10 +56,16 @@ class PositionEvent {
   closedAt?: string;
   stopLoss?: string;
   takeProfit?: string;
-  trades!: TradeItem[];
+  trades!: Array<{
+    id: string;
+    type: 'BUY' | 'SELL';
+    amount: string;
+    price: string;
+    timestamp: string;
+  }>;
 }
 
-class PriceEvent {
+class PriceEventSwagger implements PriceEventDto {
   id!: string;
   token!: string;
   price!: string;
@@ -78,19 +75,12 @@ class PriceEvent {
   timestamp!: string;
 }
 
-class AllEventsResponse {
-  burnEvents!: BurnEvent[];
-  liquidityEvents!: LiquidityEvent[];
-  tradeEvents!: TradeEvent[];
-  positionEvents!: PositionEvent[];
-}
-
 @ApiTags('events')
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  @Get()
+  @Get('all')
   @ApiOperation({
     summary: 'Get all recent events',
     description:
@@ -106,9 +96,23 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved all events',
-    type: AllEventsResponse,
+    schema: {
+      type: 'object',
+      properties: {
+        burnEvents: { type: 'array', items: { $ref: '#/components/schemas/BurnEventSwagger' } },
+        liquidityEvents: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/LiquidityEventSwagger' },
+        },
+        tradeEvents: { type: 'array', items: { $ref: '#/components/schemas/TradeEventSwagger' } },
+        positionEvents: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/PositionEventSwagger' },
+        },
+      },
+    },
   })
-  async getAllEvents(@Query('limit') limit: number = 50) {
+  async getAllEvents(@Query('limit') limit: number = 50): Promise<AllEventsResponse> {
     return await this.eventsService.getRecentEvents(limit);
   }
 
@@ -127,9 +131,9 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved burn events',
-    type: [BurnEvent],
+    type: [BurnEventSwagger],
   })
-  async getBurnEvents(@Query('limit') limit: number = 50) {
+  async getBurnEvents(@Query('limit') limit: number = 50): Promise<BurnEventDto[]> {
     return await this.eventsService.getBurnEvents(limit);
   }
 
@@ -148,9 +152,9 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved liquidity events',
-    type: [LiquidityEvent],
+    type: [LiquidityEventSwagger],
   })
-  async getLiquidityEvents(@Query('limit') limit: number = 50) {
+  async getLiquidityEvents(@Query('limit') limit: number = 50): Promise<LiquidityEventDto[]> {
     return await this.eventsService.getLiquidityEvents(limit);
   }
 
@@ -169,9 +173,9 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved trade events',
-    type: [TradeEvent],
+    type: [TradeEventSwagger],
   })
-  async getTradeEvents(@Query('limit') limit: number = 50) {
+  async getTradeEvents(@Query('limit') limit: number = 50): Promise<TradeEventDto[]> {
     return await this.eventsService.getTradeEvents(limit);
   }
 
@@ -190,9 +194,9 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved position events',
-    type: [PositionEvent],
+    type: [PositionEventSwagger],
   })
-  async getPositionEvents(@Query('limit') limit: number = 50) {
+  async getPositionEvents(@Query('limit') limit: number = 50): Promise<PositionEventDto[]> {
     return await this.eventsService.getPositionEvents(limit);
   }
 
@@ -218,9 +222,12 @@ export class EventsController {
   @ApiResponse({
     status: 200,
     description: 'Successfully retrieved price events',
-    type: [PriceEvent],
+    type: [PriceEventSwagger],
   })
-  async getPriceEvents(@Query('limit') limit: number = 100, @Query('token') token?: string) {
+  async getPriceEvents(
+    @Query('limit') limit: number = 100,
+    @Query('token') token?: string,
+  ): Promise<PriceEventDto[]> {
     return await this.eventsService.getPriceEvents(limit, token);
   }
 }

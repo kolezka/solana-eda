@@ -1,4 +1,5 @@
-import { PrismaClient, BurnEventRecord } from '../generated/client';
+import { PrismaClient } from '../generated/client';
+import type { BurnEventRecord } from '../generated/client';
 
 export class BurnEventRepository {
   constructor(private prisma: PrismaClient) {}

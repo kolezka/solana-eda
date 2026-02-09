@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { PositionRepository } from '@solana-eda/database';
+import type { Position, PositionWithTrades } from '@solana-eda/database';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -11,27 +12,27 @@ export class PositionsService {
 
   private positionRepo: PositionRepository;
 
-  async getAllPositions() {
+  async getAllPositions(): Promise<PositionWithTrades[]> {
     return this.positionRepo.findOpenPositions();
   }
 
-  async getOpenPositions() {
+  async getOpenPositions(): Promise<PositionWithTrades[]> {
     return await this.positionRepo.findOpenPositions();
   }
 
-  async getClosedPositions(limit: number = 50) {
+  async getClosedPositions(limit: number = 50): Promise<PositionWithTrades[]> {
     return await this.positionRepo.findClosedPositions(limit);
   }
 
-  async getPositionById(id: string) {
+  async getPositionById(id: string): Promise<PositionWithTrades | null> {
     return await this.positionRepo.findById(id);
   }
 
-  async getPositionsByToken(token: string) {
+  async getPositionsByToken(token: string): Promise<PositionWithTrades[]> {
     return await this.positionRepo.findByToken(token);
   }
 
-  async updatePositionPrice(id: string, currentPrice: number) {
+  async updatePositionPrice(id: string, currentPrice: number): Promise<Position | null> {
     return await this.positionRepo.updateCurrentPrice(id, currentPrice);
   }
 
@@ -39,11 +40,11 @@ export class PositionsService {
     id: string,
     exitPrice: number,
     reason: 'TAKE_PROFIT' | 'STOP_LOSS' | 'MANUAL' | 'TIMEOUT',
-  ) {
+  ): Promise<PositionWithTrades> {
     return await this.positionRepo.closePosition(id, exitPrice, reason);
   }
 
-  async getOpenPositionCount() {
+  async getOpenPositionCount(): Promise<number> {
     return await this.positionRepo.countOpenPositions();
   }
 

@@ -1,4 +1,5 @@
-import { Prisma, PrismaClient, WorkerStatusRecord } from '../generated/client';
+import { Prisma, PrismaClient } from '../generated/client';
+import type { WorkerStatusRecord } from '../generated/client';
 export class WorkerStatusRepository {
   constructor(private prisma: PrismaClient) {}
 

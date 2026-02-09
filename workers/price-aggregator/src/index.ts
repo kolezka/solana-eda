@@ -67,7 +67,10 @@ class PriceAggregatorWorker {
 
   constructor() {
     // Initialize Solana connection
-    this.connection = new SolanaConnectionManager(SOLANA_RPC_URL, SOLANA_WS_URL);
+    this.connection = new SolanaConnectionManager({
+      rpcUrl: SOLANA_RPC_URL,
+      wsUrl: SOLANA_WS_URL,
+    });
 
     // Initialize Redis
     this.redis = new Redis(REDIS_URL);

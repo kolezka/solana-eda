@@ -1,6 +1,5 @@
-import { PrismaClient, Trade, Position } from '../generated/client';
-
-type TradeWithPosition = Trade & { position: Position | null };
+import type { PrismaClient } from '../generated/client';
+import type { Trade, TradeWithPosition } from '../types';
 
 export class TradeRepository {
   constructor(private prisma: PrismaClient) {}
@@ -13,7 +12,7 @@ export class TradeRepository {
     signature: string;
     slippage: number;
   }): Promise<Trade> {
-    return await this.prisma.trade.create({
+    const result = await this.prisma.trade.create({
       data: {
         ...data,
         amount: data.amount,
@@ -21,44 +20,50 @@ export class TradeRepository {
         slippage: data.slippage,
       },
     });
+    return result as unknown as Trade;
   }
 
   async findById(id: string): Promise<TradeWithPosition | null> {
-    return await this.prisma.trade.findUnique({
+    const result = await this.prisma.trade.findUnique({
       where: { id },
       include: { position: true },
     });
+    return result as unknown as TradeWithPosition | null;
   }
 
   async findByPositionId(positionId: string): Promise<Trade[]> {
-    return await this.prisma.trade.findMany({
+    const result = await this.prisma.trade.findMany({
       where: { positionId },
       orderBy: { timestamp: 'desc' },
     });
+    return result as unknown as Trade[];
   }
 
   async findBySignature(signature: string): Promise<TradeWithPosition | null> {
-    return await this.prisma.trade.findUnique({
+    const result = await this.prisma.trade.findUnique({
       where: { signature },
       include: { position: true },
     });
+    return result as unknown as TradeWithPosition | null;
   }
 
   async findRecent(limit: number = 50): Promise<TradeWithPosition[]> {
-    return await this.prisma.trade.findMany({
+    const result = await this.prisma.trade.findMany({
       orderBy: { timestamp: 'desc' },
       take: limit,
       include: { position: true },
     });
+    return result as unknown as TradeWithPosition[];
   }
 
   async findTradesByType(type: 'BUY' | 'SELL', limit: number = 50): Promise<TradeWithPosition[]> {
-    return await this.prisma.trade.findMany({
+    const result = await this.prisma.trade.findMany({
       where: { type },
       orderBy: { timestamp: 'desc' },
       take: limit,
       include: { position: true },
     });
+    return result as unknown as TradeWithPosition[];
   }
 
   async calculateTotalVolume(startDate: Date, endDate: Date): Promise<number> {

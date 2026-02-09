@@ -4,9 +4,9 @@ import { PublicKey } from '@solana/web3.js';
 import {
   SolanaConnectionManager,
   TransactionParser,
-  ParsedBurnTransaction,
   TokenValidator,
 } from '@solana-eda/solana-client';
+import type { ParsedBurnTransaction } from '@solana-eda/solana-client';
 import { PrismaClient, BurnEventRepository, TokenValidationRepository } from '@solana-eda/database';
 import { createBurnEvent, createTokenValidatedEvent, CHANNELS } from '@solana-eda/events';
 import { WorkerStatusRepository } from '@solana-eda/database';
@@ -61,11 +61,11 @@ class BurnDetectorWorker {
 
   constructor() {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-    const wsUrl = process.env.SOLANA_WS_URL || 'ws://api.mainnet-beta.solana.com';
+    const wsUrl = process.env.SOLANA_WS_URL || 'wss://api.mainnet-beta.solana.com';
 
     console.log({ rpcUrl, wsUrl });
 
-    this.connection = new SolanaConnectionManager(rpcUrl, 'http://api.mainnet-beta.solana.com');
+    this.connection = new SolanaConnectionManager({ rpcUrl, wsUrl });
     this.parser = new TransactionParser();
     this.tokenValidator = new TokenValidator();
 

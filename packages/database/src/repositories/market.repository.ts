@@ -1,4 +1,5 @@
-import { PrismaClient, MarketRecord } from '../generated/client';
+import { PrismaClient } from '../generated/client';
+import type { MarketRecord } from '../generated/client';
 
 export interface MarketData {
   address: string;

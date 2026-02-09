@@ -9,6 +9,81 @@ import {
 } from '@solana-eda/database';
 import { PrismaService } from '../../prisma/prisma.service';
 
+export interface BurnEventDto {
+  id: string;
+  txSignature: string;
+  token: string;
+  amount: string;
+  percentage: number;
+  timestamp: string;
+  processed: boolean;
+}
+
+export interface LiquidityEventDto {
+  id: string;
+  address: string;
+  tokenA: string;
+  tokenB: string;
+  tvl: string;
+  price: string;
+  volume24h: string;
+  updatedAt: string;
+}
+
+export interface TradeEventDto {
+  id: string;
+  positionId: string;
+  type: 'BUY' | 'SELL';
+  amount: string;
+  price: string;
+  signature: string | null | undefined;
+  slippage: number;
+  timestamp: string;
+  position?: {
+    id: string;
+    token: string;
+    status: string;
+  } | null;
+}
+
+export interface PositionEventDto {
+  id: string;
+  token: string;
+  amount: string;
+  entryPrice: string;
+  currentPrice: string;
+  pnl: number;
+  status: 'OPEN' | 'CLOSED';
+  openedAt: string;
+  closedAt?: string;
+  stopLoss?: string;
+  takeProfit?: string;
+  trades: Array<{
+    id: string;
+    type: 'BUY' | 'SELL';
+    amount: string;
+    price: string;
+    timestamp: string;
+  }>;
+}
+
+export interface PriceEventDto {
+  id: string;
+  token: string;
+  price: string;
+  source: string;
+  confidence: number;
+  volume24h?: string;
+  timestamp: string;
+}
+
+export interface AllEventsResponse {
+  burnEvents: BurnEventDto[];
+  liquidityEvents: LiquidityEventDto[];
+  tradeEvents: TradeEventDto[];
+  positionEvents: PositionEventDto[];
+}
+
 @Injectable()
 export class EventsService {
   private burnEventRepo: BurnEventRepository;
@@ -28,7 +103,7 @@ export class EventsService {
     this.priceRepo = new PriceRepository(prisma);
   }
 
-  async getRecentEvents(limit: number = 50) {
+  async getRecentEvents(limit: number = 50): Promise<AllEventsResponse> {
     const [burnEvents, liquidityEvents, tradeEvents, positionEvents] = await Promise.all([
       this.getBurnEvents(limit),
       this.getLiquidityEvents(limit),
@@ -44,7 +119,7 @@ export class EventsService {
     };
   }
 
-  async getBurnEvents(limit: number = 50) {
+  async getBurnEvents(limit: number = 50): Promise<BurnEventDto[]> {
     const events = await this.burnEventRepo.findRecent(limit);
     return events.map((event) => ({
       id: event.id,
@@ -57,7 +132,7 @@ export class EventsService {
     }));
   }
 
-  async getLiquidityEvents(limit: number = 50) {
+  async getLiquidityEvents(limit: number = 50): Promise<LiquidityEventDto[]> {
     const pools = await this.liquidityPoolRepo.findAll(limit);
     return pools.map((pool) => ({
       id: pool.id,
@@ -71,7 +146,7 @@ export class EventsService {
     }));
   }
 
-  async getTradeEvents(limit: number = 50) {
+  async getTradeEvents(limit: number = 50): Promise<TradeEventDto[]> {
     const trades = await this.tradeRepo.findRecent(limit);
     return trades.map((trade) => ({
       id: trade.id,
@@ -79,7 +154,7 @@ export class EventsService {
       type: trade.type,
       amount: trade.amount.toString(),
       price: trade.price.toString(),
-      signature: trade.signature,
+      signature: trade.txSignature,
       slippage: Number(trade.slippage),
       timestamp: trade.timestamp.toISOString(),
       position: trade.position
@@ -92,7 +167,7 @@ export class EventsService {
     }));
   }
 
-  async getPositionEvents(limit: number = 50) {
+  async getPositionEvents(limit: number = 50): Promise<PositionEventDto[]> {
     const positions = await this.positionRepo.findOpenPositions();
     return positions.slice(0, limit).map((position) => ({
       id: position.id,
@@ -100,7 +175,7 @@ export class EventsService {
       amount: position.amount.toString(),
       entryPrice: position.entryPrice.toString(),
       currentPrice: position.currentPrice.toString(),
-      pnl: Number(position.pnl),
+      pnl: Number(position.pnl ?? 0),
       status: position.status,
       openedAt: position.openedAt.toISOString(),
       closedAt: position.closedAt?.toISOString(),
@@ -127,7 +202,7 @@ export class EventsService {
     return subscriber;
   }
 
-  async getPriceEvents(limit: number = 100, token?: string) {
+  async getPriceEvents(limit: number = 100, token?: string): Promise<PriceEventDto[]> {
     let priceRecords;
 
     if (token) {

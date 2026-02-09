@@ -20,7 +20,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@solana-eda/types": ["../../packages/types/src"],
+      "@solana-eda/events": ["../../packages/events/src"],
+      "@solana-eda/config": ["../../packages/config/src"],
+      "@solana-eda/database": ["../../packages/database/src"],
+      "@solana-eda/monitoring": ["../../packages/monitoring/src"],
+      "@solana-eda/error-handling": ["../../packages/error-handling/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

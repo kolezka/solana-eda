@@ -1,4 +1,5 @@
-import { PrismaClient, TradeSettings } from '../generated/client';
+import type { PrismaClient } from '../generated/client';
+import type { TradeSettings } from '../types';
 
 export class TradeSettingsRepository {
   constructor(private prisma: PrismaClient) {}
@@ -12,7 +13,7 @@ export class TradeSettingsRepository {
     takeProfitPercent?: number;
     minBurnAmount?: number;
   }): Promise<TradeSettings> {
-    return await this.prisma.tradeSettings.create({
+    const result = await this.prisma.tradeSettings.create({
       data: {
         ...data,
         maxSlippage: data.maxSlippage || 0.03,
@@ -22,28 +23,33 @@ export class TradeSettingsRepository {
         minBurnAmount: data.minBurnAmount || 1000,
       },
     });
+    return result as unknown as TradeSettings;
   }
 
   async findById(id: string): Promise<TradeSettings | null> {
-    return await this.prisma.tradeSettings.findUnique({
+    const result = await this.prisma.tradeSettings.findUnique({
       where: { id },
     });
+    return result as TradeSettings | null;
   }
 
   async findByName(name: string): Promise<TradeSettings | null> {
-    return await this.prisma.tradeSettings.findUnique({
+    const result = await this.prisma.tradeSettings.findUnique({
       where: { name },
     });
+    return result as TradeSettings | null;
   }
 
   async findEnabled(): Promise<TradeSettings[]> {
-    return await this.prisma.tradeSettings.findMany({
+    const result = await this.prisma.tradeSettings.findMany({
       where: { enabled: true },
     });
+    return result as unknown as TradeSettings[];
   }
 
   async findAll(): Promise<TradeSettings[]> {
-    return await this.prisma.tradeSettings.findMany();
+    const result = await this.prisma.tradeSettings.findMany();
+    return result as unknown as TradeSettings[];
   }
 
   async update(
@@ -57,10 +63,11 @@ export class TradeSettingsRepository {
       minBurnAmount: number;
     }>,
   ): Promise<TradeSettings> {
-    return await this.prisma.tradeSettings.update({
+    const result = await this.prisma.tradeSettings.update({
       where: { id },
       data: { ...data, updatedAt: new Date() },
     });
+    return result as unknown as TradeSettings;
   }
 
   async updateByName(
@@ -74,19 +81,21 @@ export class TradeSettingsRepository {
       minBurnAmount: number;
     }>,
   ): Promise<TradeSettings> {
-    return await this.prisma.tradeSettings.update({
+    const result = await this.prisma.tradeSettings.update({
       where: { name },
       data: { ...data, updatedAt: new Date() },
     });
+    return result as unknown as TradeSettings;
   }
 
   async toggleEnabled(id: string): Promise<TradeSettings | null> {
     const settings = await this.findById(id);
     if (!settings) return null;
 
-    return await this.prisma.tradeSettings.update({
+    const result = await this.prisma.tradeSettings.update({
       where: { id },
       data: { enabled: !settings.enabled, updatedAt: new Date() },
     });
+    return result as unknown as TradeSettings;
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { EventType, AnyEvent } from '@solana-eda/types';
+import type { EventType, AnyEvent } from '@solana-eda/types';
 
 describe('Types', () => {
   describe('EventType', () => {

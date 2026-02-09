@@ -1,11 +1,7 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
-import {
-  SolanaConnectionManager,
-  DEXAggregator,
-  BestQuote,
-  SwapResult,
-} from '@solana-eda/solana-client';
+import { SolanaConnectionManager, DEXAggregator } from '@solana-eda/solana-client';
+import type { BestQuote, SwapResult } from '@solana-eda/solana-client';
 import {
   PrismaClient,
   PositionRepository,
@@ -19,8 +15,8 @@ import {
   createPositionClosedEvent,
   CHANNELS,
   validateEvent,
-  AnyEvent,
 } from '@solana-eda/events';
+import type { AnyEvent } from '@solana-eda/events';
 import { Keypair, PublicKey } from '@solana/web3.js';
 
 dotenv.config();

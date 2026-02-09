@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
-import { WorkerStatusRepository, WorkerStatusRecord } from '@solana-eda/database';
+import { WorkerStatusRepository } from '@solana-eda/database';
+import type { WorkerStatusRecord } from '@solana-eda/database';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()

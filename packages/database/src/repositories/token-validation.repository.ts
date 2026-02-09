@@ -1,4 +1,5 @@
-import { PrismaClient, TokenValidationRecord } from '../generated/client';
+import { PrismaClient } from '../generated/client';
+import type { TokenValidationRecord } from '../generated/client';
 
 export interface TokenValidationData {
   token: string;

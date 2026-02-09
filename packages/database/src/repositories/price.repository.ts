@@ -1,4 +1,5 @@
-import { PrismaClient, PriceRecord } from '../generated/client';
+import { PrismaClient } from '../generated/client';
+import type { PriceRecord } from '../generated/client';
 
 export class PriceRepository {
   constructor(private prisma: PrismaClient) {}

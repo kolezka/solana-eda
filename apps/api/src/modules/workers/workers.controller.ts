@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { WorkersService } from './workers.service';
-import { WorkerStatusRecord } from '@solana-eda/database';
+import type { WorkerStatusRecord } from '@solana-eda/database';
 
 class WorkerStatusDTO {
   id!: string;

@@ -60,11 +60,11 @@ class MarketDetectorWorker {
     const rpcUrl = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const wsUrl = process.env.SOLANA_WS_URL || 'wss://api.mainnet-beta.solana.com';
 
-    console.log(`[MarketDetector] Initializing with RPC: ${rpcUrl}`);
+    console.log(`[MarketDetector] Initializing with RPC: ${rpcUrl} ${wsUrl}`);
     console.log(`[MarketDetector] Tracking quote mints: ${QUOTE_MINTS.join(', ')}`);
     console.log(`[MarketDetector] Minimum pool size: ${MIN_POOL_SIZE} lamports`);
 
-    this.connection = new SolanaConnectionManager(rpcUrl);
+    this.connection = new SolanaConnectionManager({ rpcUrl, wsUrl });
     this.marketParser = new MarketParser();
 
     // Clean up old markets periodically

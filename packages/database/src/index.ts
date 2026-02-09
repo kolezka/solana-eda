@@ -10,3 +10,12 @@ export * from './repositories/trade-settings.repository';
 export * from './repositories/market.repository';
 export * from './repositories/token-validation.repository';
 export * from './repositories/discovered-pool.repository';
+
+// Re-export commonly used types (portable interfaces, not Prisma-generated)
+export type {
+  Position,
+  PositionWithTrades,
+  Trade,
+  TradeWithPosition,
+  TradeSettings,
+} from './types';

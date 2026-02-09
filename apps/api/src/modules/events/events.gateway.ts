@@ -1,12 +1,8 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  SubscribeMessage,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage } from '@nestjs/websockets';
+import type { OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { validateEvent, CHANNELS } from '@solana-eda/events';
@@ -20,7 +16,7 @@ import { validateEvent, CHANNELS } from '@solana-eda/events';
 })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   @WebSocketServer()
-  server!: Server;
+  server: Server | null = null;
 
   private subscribers: Map<Socket, Set<string>> = new Map();
   private redisSubscriber: Redis | null = null;
@@ -29,7 +25,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     // Don't call subscribeToRedisChannels in constructor
   }
 
-  onModuleInit() {
+  onModuleInit(): void {
     console.log('EventsGateway initialized');
     // Temporarily disable Redis subscription to test if it's blocking startup
     // this.subscribeToRedisChannels().catch(err => {
@@ -37,18 +33,18 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     // });
   }
 
-  handleConnection(client: Socket) {
+  handleConnection(client: Socket): void {
     console.log(`Client connected: ${client.id}`);
     this.subscribers.set(client, new Set());
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket): void {
     console.log(`Client disconnected: ${client.id}`);
     this.subscribers.delete(client);
   }
 
   @SubscribeMessage('subscribe')
-  handleSubscribe(client: Socket, channel: string) {
+  handleSubscribe(client: Socket, channel: string): void {
     console.log(`Client ${client.id} subscribed to: ${channel}`);
     const channels = this.subscribers.get(client) || new Set();
     channels.add(channel);
@@ -58,7 +54,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   @SubscribeMessage('unsubscribe')
-  handleUnsubscribe(client: Socket, channel: string) {
+  handleUnsubscribe(client: Socket, channel: string): void {
     console.log(`Client ${client.id} unsubscribed from: ${channel}`);
     const channels = this.subscribers.get(client);
     if (channels) {
@@ -68,7 +64,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     client.emit('unsubscribed', { channel });
   }
 
-  private async subscribeToRedisChannels() {
+  private async subscribeToRedisChannels(): Promise<void> {
     // Create a dedicated subscriber client
     this.redisSubscriber = this.redis.duplicate();
 
@@ -107,7 +103,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     });
   }
 
-  private broadcastEvent(channel: string, event: any) {
-    this.server.emit('event', { channel, data: event });
+  private broadcastEvent(channel: string, event: any): void {
+    this.server?.emit('event', { channel, data: event });
   }
 }

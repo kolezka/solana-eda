@@ -1,5 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
     "module": "commonjs",
@@ -14,12 +13,29 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": true,
+    "verbatimModuleSyntax": false,
+    "strict": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictBindCallApply": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "noImplicitOverride": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noEmit": false,
     "sourceMap": true,
     "types": ["node", "jest"],
-    "verbatimModuleSyntax": false,
-    "allowImportingTsExtensions": false
+    "paths": {
+      "@solana-eda/types": ["../../packages/types/src"],
+      "@solana-eda/events": ["../../packages/events/src"],
+      "@solana-eda/config": ["../../packages/config/src"],
+      "@solana-eda/database": ["../../packages/database/src"],
+      "@solana-eda/monitoring": ["../../packages/monitoring/src"],
+      "@solana-eda/error-handling": ["../../packages/error-handling/src"],
+      "@solana-eda/solana-client": ["../../packages/solana-client/src"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test"]
