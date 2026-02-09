@@ -18,9 +18,11 @@ import { PrismaPg } from '@prisma/adapter-pg';
 dotenv.config();
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
+
 const prisma = new PrismaClient({ adapter });
 
 const poolRepo = new LiquidityPoolRepository(prisma);

@@ -6,10 +6,12 @@ import {
   SystemProgram,
 } from '@solana/web3.js';
 import type { AccountInfo, Context } from '@solana/web3.js';
+import { RateLimiter, RPC_RATE_LIMITS } from './rate-limiter';
 
 export class SolanaConnectionManager {
   private connection: Connection;
   private wsConnection: Connection | null = null;
+  private rateLimiter: RateLimiter;
 
   constructor(
     rpcUrl: string,
@@ -20,11 +22,35 @@ export class SolanaConnectionManager {
     if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
       throw new Error(`Invalid RPC URL: ${rpcUrl}. URL must start with http:// or https://`);
     }
-    this.connection = new Connection(normalizedUrl);
+
+    // Create rate limiter based on RPC endpoint
+    const rateLimitConfig = this.getRateLimitConfig(normalizedUrl);
+    this.rateLimiter = new RateLimiter(rateLimitConfig);
+
+    this.connection = new Connection(normalizedUrl, 'confirmed');
     if (wsUrl) {
       const normalizedWsUrl = wsUrl.trim();
       this.wsConnection = new Connection(normalizedWsUrl, 'confirmed');
     }
+  }
+
+  /**
+   * Get rate limit config based on RPC URL
+   */
+  private getRateLimitConfig(rpcUrl: string): { maxRequests: number; windowMs: number } {
+    // Check for known RPC providers
+    for (const [domain, config] of Object.entries(RPC_RATE_LIMITS)) {
+      if (rpcUrl.includes(domain)) {
+        console.log(`[SolanaConnection] Using rate limit config for ${domain}:`, config);
+        return config;
+      }
+    }
+
+    // Default conservative rate limit for unknown endpoints
+    console.log(
+      `[SolanaConnection] Using default rate limit: 10 req/sec (conservative for public endpoints)`,
+    );
+    return { maxRequests: 10, windowMs: 1000 };
   }
 
   getConnection(): Connection {
@@ -37,6 +63,14 @@ export class SolanaConnectionManager {
 
   getWsUrl(): string | undefined {
     return this.wsUrl;
+  }
+
+  /**
+   * Execute a function with rate limiting
+   */
+  private async withRateLimit<T>(fn: () => Promise<T>): Promise<T> {
+    await this.rateLimiter.throttle();
+    return await fn();
   }
 
   /**
@@ -80,24 +114,32 @@ export class SolanaConnectionManager {
   }
 
   /**
-   * Get account info
+   * Get account info with rate limiting
    */
   async getAccountInfo(publicKey: PublicKey): Promise<AccountInfo<Buffer> | null> {
-    return await this.connection.getAccountInfo(publicKey);
+    return await this.withRateLimit(async () => {
+      return await this.connection.getAccountInfo(publicKey);
+    });
   }
 
   /**
-   * Get multiple accounts
+   * Get multiple accounts with rate limiting (counts as 1 request)
    */
   async getMultipleAccounts(publicKeys: PublicKey[]): Promise<(AccountInfo<Buffer> | null)[]> {
-    return await this.connection.getMultipleAccountsInfo(publicKeys);
+    return await this.withRateLimit(async () => {
+      return await this.connection.getMultipleAccountsInfo(publicKeys);
+    });
   }
 
   /**
-   * Get transaction details
+   * Get transaction details with rate limiting
    */
   async getTransaction(signature: string): Promise<any | null> {
-    return await this.connection.getTransaction(signature, { maxSupportedTransactionVersion: 0 });
+    return await this.withRateLimit(async () => {
+      return await this.connection.getTransaction(signature, {
+        maxSupportedTransactionVersion: 0,
+      });
+    });
   }
 
   /**
