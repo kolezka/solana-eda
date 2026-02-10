@@ -1,18 +1,12 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "composite": false,
+    "composite": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "skipLibCheck": true,
-    "noEmit": false,
-    "allowImportingTsExtensions": false,
-    "declaration": true,
-    "esModuleInterop": true,
-    "verbatimModuleSyntax": false,
-    "paths": {}
+    "declarationMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

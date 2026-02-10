@@ -5,34 +5,6 @@
 
 export class FeatureFlags {
   /**
-   * Check if RabbitMQ publishing is enabled
-   */
-  static isRabbitMQEnabled(): boolean {
-    return process.env.RABBITMQ_ENABLED === 'true';
-  }
-
-  /**
-   * Check if dual-write mode is enabled (Redis + RabbitMQ)
-   */
-  static isDualWriteEnabled(): boolean {
-    return process.env.RABBITMQ_DUAL_WRITE === 'true';
-  }
-
-  /**
-   * Check if dual-read mode is enabled (for consumers)
-   */
-  static isDualReadEnabled(): boolean {
-    return process.env.RABBITMQ_DUAL_READ === 'true';
-  }
-
-  /**
-   * Get RabbitMQ URL from environment
-   */
-  static getRabbitMQUrl(): string {
-    return process.env.RABBITMQ_URL || 'amqp://solana:solana123@localhost:5672';
-  }
-
-  /**
    * Get RPC URLs (comma-separated list)
    */
   static getRpcUrls(): string[] {
@@ -94,6 +66,41 @@ export class FeatureFlags {
   }
 
   /**
+   * Check if BullMQ publishing is enabled
+   */
+  static isBullMQEnabled(): boolean {
+    return process.env.BULLMQ_ENABLED === 'true';
+  }
+
+  /**
+   * Check if BullMQ dual-write mode is enabled (write to both Redis and BullMQ)
+   */
+  static isBullMQDualWriteEnabled(): boolean {
+    return process.env.BULLMQ_DUAL_WRITE === 'true';
+  }
+
+  /**
+   * Check if BullMQ dual-read mode is enabled (for consumers)
+   */
+  static isBullMQDualReadEnabled(): boolean {
+    return process.env.BULLMQ_DUAL_READ === 'true';
+  }
+
+  /**
+   * Get Redis URL for BullMQ (defaults to standard Redis URL)
+   */
+  static getBullMQRedisUrl(): string {
+    return process.env.BULLMQ_REDIS_URL || this.getRedisUrl();
+  }
+
+  /**
+   * Get BullMQ worker concurrency
+   */
+  static getBullMQConcurrency(): number {
+    return Number(process.env.BULLMQ_CONCURRENCY || '5');
+  }
+
+  /**
    * Get worker name
    */
   static getWorkerName(): string {
@@ -105,12 +112,14 @@ export class FeatureFlags {
    */
   static logConfiguration(workerName: string): void {
     console.log(`[${workerName}] Feature Flags:`);
-    console.log(`  RABBITMQ_ENABLED: ${this.isRabbitMQEnabled()}`);
-    console.log(`  RABBITMQ_DUAL_WRITE: ${this.isDualWriteEnabled()}`);
-    console.log(`  RABBITMQ_DUAL_READ: ${this.isDualReadEnabled()}`);
     console.log(`  ENABLE_PRIORITY_FEES: ${this.isPriorityFeeEnabled()}`);
     console.log(`  SOLANA_RPC_URLS: ${this.getRpcUrls().join(', ')}`);
-    console.log(`  RabbitMQ URL: ${this.getRabbitMQUrl().replace(/:[^:@]+@/, ':****@')}`);
+    // BullMQ configuration
+    console.log(`  BULLMQ_ENABLED: ${this.isBullMQEnabled()}`);
+    console.log(`  BULLMQ_DUAL_WRITE: ${this.isBullMQDualWriteEnabled()}`);
+    console.log(`  BULLMQ_DUAL_READ: ${this.isBullMQDualReadEnabled()}`);
+    console.log(`  BULLMQ_REDIS_URL: ${this.getBullMQRedisUrl().replace(/:[^:@]+@/, ':****@')}`);
+    console.log(`  BULLMQ_CONCURRENCY: ${this.getBullMQConcurrency()}`);
   }
 }
 
@@ -126,10 +135,10 @@ export interface WorkerMetrics {
   burnsDetected?: number;
   tradesExecuted?: number;
   pricesPublished?: number;
-  // RabbitMQ metrics
-  rabbitMQPublishSuccess?: number;
-  rabbitMQPublishFailure?: number;
-  rabbitMQEnabled?: boolean;
+  // BullMQ metrics
+  bullMQJobsProcessed?: number;
+  bullMQJobsFailed?: number;
+  bullMQEnabled?: boolean;
 }
 
 /**

@@ -7,7 +7,7 @@ import type { AnyEvent } from '@solana-eda/events';
 
 /**
  * WebSocket Gateway for real-time event delivery
- * Uses EventEmitter2 to receive events from RabbitMQ consumers
+ * Uses EventEmitter2 to receive events from event consumers
  */
 @Injectable()
 @WebSocketGateway({

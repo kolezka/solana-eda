@@ -24,6 +24,16 @@ export * from './worker-publisher';
 // Re-export feature flags
 export * from './feature-flags';
 
+// Convenience function exports for feature flags (used by other modules)
+import { FeatureFlags } from './feature-flags';
+
+export const isBullMQEnabled = (): boolean => FeatureFlags.isBullMQEnabled();
+export const getBullMQRedisUrl = (): string => FeatureFlags.getBullMQRedisUrl();
+export const getBullMQConcurrency = (): number => FeatureFlags.getBullMQConcurrency();
+
+// Re-export BullMQ support
+export * from './bullmq';
+
 export { Redis as createClient };
 
 // Redis channel names

@@ -6,6 +6,15 @@ out
 dist
 *.tgz
 
+# TypeScript compiled files in source directories
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+**/src/**/*.d.ts.map
+
+# Allow Prisma generated files
+!**/src/generated/**
+
 # code coverage
 coverage
 *.lcov
@@ -26,6 +35,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .eslintcache
 .cache
 *.tsbuildinfo
+**/dist/**/*.tsbuildinfo
 
 # IntelliJ based IDEs
 .idea

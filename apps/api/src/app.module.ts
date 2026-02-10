@@ -4,9 +4,10 @@ import { EventsModule } from './modules/events/events.module';
 import { WorkersModule } from './modules/workers/workers.module';
 import { TradingModule } from './modules/trading/trading.module';
 import { PositionsModule } from './modules/positions/positions.module';
+import { QueuesModule } from './modules/queues/queues.module';
 import { RedisModule } from './redis/redis.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
+import { BullMQModule } from './bullmq';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
@@ -17,7 +18,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     }),
     PrismaModule,
     RedisModule,
-    RabbitMQModule,
+    BullMQModule,
     EventEmitterModule.forRoot({
       wildcard: true,
       delimiter: ':',
@@ -26,6 +27,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     WorkersModule,
     TradingModule,
     PositionsModule,
+    QueuesModule,
   ],
   providers: [],
 })

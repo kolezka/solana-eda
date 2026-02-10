@@ -1,31 +1,29 @@
-// Core utilities
-export * from './connection';
-export * from './transaction-parser';
-export * from './account-watcher';
-export * from './pool-parser';
-export * from './rate-limiter';
-export * from './batch-client';
+// Connection manager
+export {
+  SolanaConnectionManager,
+  createConnectionManager,
+} from './connection.js';
 
-// Priority fee management
-export * from './priority-fee-manager';
+// OpenBook client
+export {
+  OpenBookClient,
+  createOpenBookClient,
+  getDefaultQuoteMints,
+  getOpenBookProgramIds,
+} from './openbook-client.js';
 
-// RPC connection pooling
-export * from './rpc-pool';
-export * from './jupiter-pool';
-export * from './sidecar-client';
+// Types
+export type {
+  ConnectionConfig,
+  WebSocketReconnectConfig,
+  ConnectionState,
+  RpcPoolEntry,
+  MarketState,
+  MarketFilters,
+  MarketDiscoveryCallback,
+  MarketErrorCallback,
+  OpenBookClientConfig,
+  AccountChangeResult,
+} from './types.js';
 
-// Market and token parsing
-export * from './market-parser';
-export * from './token-validator';
-
-// DEX types and interfaces
-export * from './types';
-
-// DEX aggregator
-export { DEXAggregator } from './dex-aggregator';
-
-// Individual DEX clients
-export { JupiterClient, type JupiterQuote } from './jupiter-client';
-export { OrcaClient, type OrcaQuote } from './orca-client';
-export { MeteoraClient, type MeteoraQuote } from './meteora-client';
-export { RaydiumClient, type RaydiumQuote } from './raydium-client';
+export { ConnectionState as ConnectionStateEnum } from './types.js';

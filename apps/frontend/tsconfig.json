@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -20,15 +20,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@solana-eda/types": ["../../packages/types/src"],
-      "@solana-eda/events": ["../../packages/events/src"],
-      "@solana-eda/config": ["../../packages/config/src"],
-      "@solana-eda/database": ["../../packages/database/src"],
-      "@solana-eda/monitoring": ["../../packages/monitoring/src"],
-      "@solana-eda/error-handling": ["../../packages/error-handling/src"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true
+  }
 }

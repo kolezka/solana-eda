@@ -2,8 +2,6 @@
   "name": "@solana-eda/error-handling",
   "version": "1.0.0",
   "description": "Error handling and resilience utilities for Solana EDA",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"

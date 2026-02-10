@@ -1,0 +1,1123 @@
+import type * as runtime from '@prisma/client/runtime/client';
+import type * as Prisma from '../internal/prismaNamespace';
+/**
+ * Model LiquidityPoolRecord
+ *
+ */
+export type LiquidityPoolRecordModel = runtime.Types.Result.DefaultSelection<Prisma.$LiquidityPoolRecordPayload>;
+export type AggregateLiquidityPoolRecord = {
+    _count: LiquidityPoolRecordCountAggregateOutputType | null;
+    _avg: LiquidityPoolRecordAvgAggregateOutputType | null;
+    _sum: LiquidityPoolRecordSumAggregateOutputType | null;
+    _min: LiquidityPoolRecordMinAggregateOutputType | null;
+    _max: LiquidityPoolRecordMaxAggregateOutputType | null;
+};
+export type LiquidityPoolRecordAvgAggregateOutputType = {
+    tvl: runtime.Decimal | null;
+    price: runtime.Decimal | null;
+    volume24h: runtime.Decimal | null;
+};
+export type LiquidityPoolRecordSumAggregateOutputType = {
+    tvl: runtime.Decimal | null;
+    price: runtime.Decimal | null;
+    volume24h: runtime.Decimal | null;
+};
+export type LiquidityPoolRecordMinAggregateOutputType = {
+    id: string | null;
+    address: string | null;
+    tokenA: string | null;
+    tokenB: string | null;
+    tvl: runtime.Decimal | null;
+    price: runtime.Decimal | null;
+    volume24h: runtime.Decimal | null;
+    updatedAt: Date | null;
+};
+export type LiquidityPoolRecordMaxAggregateOutputType = {
+    id: string | null;
+    address: string | null;
+    tokenA: string | null;
+    tokenB: string | null;
+    tvl: runtime.Decimal | null;
+    price: runtime.Decimal | null;
+    volume24h: runtime.Decimal | null;
+    updatedAt: Date | null;
+};
+export type LiquidityPoolRecordCountAggregateOutputType = {
+    id: number;
+    address: number;
+    tokenA: number;
+    tokenB: number;
+    tvl: number;
+    price: number;
+    volume24h: number;
+    updatedAt: number;
+    _all: number;
+};
+export type LiquidityPoolRecordAvgAggregateInputType = {
+    tvl?: true;
+    price?: true;
+    volume24h?: true;
+};
+export type LiquidityPoolRecordSumAggregateInputType = {
+    tvl?: true;
+    price?: true;
+    volume24h?: true;
+};
+export type LiquidityPoolRecordMinAggregateInputType = {
+    id?: true;
+    address?: true;
+    tokenA?: true;
+    tokenB?: true;
+    tvl?: true;
+    price?: true;
+    volume24h?: true;
+    updatedAt?: true;
+};
+export type LiquidityPoolRecordMaxAggregateInputType = {
+    id?: true;
+    address?: true;
+    tokenA?: true;
+    tokenB?: true;
+    tvl?: true;
+    price?: true;
+    volume24h?: true;
+    updatedAt?: true;
+};
+export type LiquidityPoolRecordCountAggregateInputType = {
+    id?: true;
+    address?: true;
+    tokenA?: true;
+    tokenB?: true;
+    tvl?: true;
+    price?: true;
+    volume24h?: true;
+    updatedAt?: true;
+    _all?: true;
+};
+export type LiquidityPoolRecordAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Filter which LiquidityPoolRecord to aggregate.
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of LiquidityPoolRecords to fetch.
+     */
+    orderBy?: Prisma.LiquidityPoolRecordOrderByWithRelationInput | Prisma.LiquidityPoolRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: Prisma.LiquidityPoolRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` LiquidityPoolRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` LiquidityPoolRecords.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned LiquidityPoolRecords
+     **/
+    _count?: true | LiquidityPoolRecordCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+     **/
+    _avg?: LiquidityPoolRecordAvgAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+     **/
+    _sum?: LiquidityPoolRecordSumAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: LiquidityPoolRecordMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: LiquidityPoolRecordMaxAggregateInputType;
+};
+export type GetLiquidityPoolRecordAggregateType<T extends LiquidityPoolRecordAggregateArgs> = {
+    [P in keyof T & keyof AggregateLiquidityPoolRecord]: P extends '_count' | 'count' ? T[P] extends true ? number : Prisma.GetScalarType<T[P], AggregateLiquidityPoolRecord[P]> : Prisma.GetScalarType<T[P], AggregateLiquidityPoolRecord[P]>;
+};
+export type LiquidityPoolRecordGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    orderBy?: Prisma.LiquidityPoolRecordOrderByWithAggregationInput | Prisma.LiquidityPoolRecordOrderByWithAggregationInput[];
+    by: Prisma.LiquidityPoolRecordScalarFieldEnum[] | Prisma.LiquidityPoolRecordScalarFieldEnum;
+    having?: Prisma.LiquidityPoolRecordScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: LiquidityPoolRecordCountAggregateInputType | true;
+    _avg?: LiquidityPoolRecordAvgAggregateInputType;
+    _sum?: LiquidityPoolRecordSumAggregateInputType;
+    _min?: LiquidityPoolRecordMinAggregateInputType;
+    _max?: LiquidityPoolRecordMaxAggregateInputType;
+};
+export type LiquidityPoolRecordGroupByOutputType = {
+    id: string;
+    address: string;
+    tokenA: string;
+    tokenB: string;
+    tvl: runtime.Decimal;
+    price: runtime.Decimal;
+    volume24h: runtime.Decimal;
+    updatedAt: Date;
+    _count: LiquidityPoolRecordCountAggregateOutputType | null;
+    _avg: LiquidityPoolRecordAvgAggregateOutputType | null;
+    _sum: LiquidityPoolRecordSumAggregateOutputType | null;
+    _min: LiquidityPoolRecordMinAggregateOutputType | null;
+    _max: LiquidityPoolRecordMaxAggregateOutputType | null;
+};
+type GetLiquidityPoolRecordGroupByPayload<T extends LiquidityPoolRecordGroupByArgs> = Prisma.PrismaPromise<Array<Prisma.PickEnumerable<LiquidityPoolRecordGroupByOutputType, T['by']> & {
+    [P in keyof T & keyof LiquidityPoolRecordGroupByOutputType]: P extends '_count' ? T[P] extends boolean ? number : Prisma.GetScalarType<T[P], LiquidityPoolRecordGroupByOutputType[P]> : Prisma.GetScalarType<T[P], LiquidityPoolRecordGroupByOutputType[P]>;
+}>>;
+export type LiquidityPoolRecordWhereInput = {
+    AND?: Prisma.LiquidityPoolRecordWhereInput | Prisma.LiquidityPoolRecordWhereInput[];
+    OR?: Prisma.LiquidityPoolRecordWhereInput[];
+    NOT?: Prisma.LiquidityPoolRecordWhereInput | Prisma.LiquidityPoolRecordWhereInput[];
+    id?: Prisma.StringFilter<'LiquidityPoolRecord'> | string;
+    address?: Prisma.StringFilter<'LiquidityPoolRecord'> | string;
+    tokenA?: Prisma.StringFilter<'LiquidityPoolRecord'> | string;
+    tokenB?: Prisma.StringFilter<'LiquidityPoolRecord'> | string;
+    tvl?: Prisma.DecimalFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeFilter<'LiquidityPoolRecord'> | Date | string;
+};
+export type LiquidityPoolRecordOrderByWithRelationInput = {
+    id?: Prisma.SortOrder;
+    address?: Prisma.SortOrder;
+    tokenA?: Prisma.SortOrder;
+    tokenB?: Prisma.SortOrder;
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type LiquidityPoolRecordWhereUniqueInput = Prisma.AtLeast<{
+    id?: string;
+    address?: string;
+    AND?: Prisma.LiquidityPoolRecordWhereInput | Prisma.LiquidityPoolRecordWhereInput[];
+    OR?: Prisma.LiquidityPoolRecordWhereInput[];
+    NOT?: Prisma.LiquidityPoolRecordWhereInput | Prisma.LiquidityPoolRecordWhereInput[];
+    tokenA?: Prisma.StringFilter<'LiquidityPoolRecord'> | string;
+    tokenB?: Prisma.StringFilter<'LiquidityPoolRecord'> | string;
+    tvl?: Prisma.DecimalFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeFilter<'LiquidityPoolRecord'> | Date | string;
+}, 'id' | 'address'>;
+export type LiquidityPoolRecordOrderByWithAggregationInput = {
+    id?: Prisma.SortOrder;
+    address?: Prisma.SortOrder;
+    tokenA?: Prisma.SortOrder;
+    tokenB?: Prisma.SortOrder;
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+    _count?: Prisma.LiquidityPoolRecordCountOrderByAggregateInput;
+    _avg?: Prisma.LiquidityPoolRecordAvgOrderByAggregateInput;
+    _max?: Prisma.LiquidityPoolRecordMaxOrderByAggregateInput;
+    _min?: Prisma.LiquidityPoolRecordMinOrderByAggregateInput;
+    _sum?: Prisma.LiquidityPoolRecordSumOrderByAggregateInput;
+};
+export type LiquidityPoolRecordScalarWhereWithAggregatesInput = {
+    AND?: Prisma.LiquidityPoolRecordScalarWhereWithAggregatesInput | Prisma.LiquidityPoolRecordScalarWhereWithAggregatesInput[];
+    OR?: Prisma.LiquidityPoolRecordScalarWhereWithAggregatesInput[];
+    NOT?: Prisma.LiquidityPoolRecordScalarWhereWithAggregatesInput | Prisma.LiquidityPoolRecordScalarWhereWithAggregatesInput[];
+    id?: Prisma.StringWithAggregatesFilter<'LiquidityPoolRecord'> | string;
+    address?: Prisma.StringWithAggregatesFilter<'LiquidityPoolRecord'> | string;
+    tokenA?: Prisma.StringWithAggregatesFilter<'LiquidityPoolRecord'> | string;
+    tokenB?: Prisma.StringWithAggregatesFilter<'LiquidityPoolRecord'> | string;
+    tvl?: Prisma.DecimalWithAggregatesFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalWithAggregatesFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalWithAggregatesFilter<'LiquidityPoolRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeWithAggregatesFilter<'LiquidityPoolRecord'> | Date | string;
+};
+export type LiquidityPoolRecordCreateInput = {
+    id?: string;
+    address: string;
+    tokenA: string;
+    tokenB: string;
+    tvl: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Date | string;
+};
+export type LiquidityPoolRecordUncheckedCreateInput = {
+    id?: string;
+    address: string;
+    tokenA: string;
+    tokenB: string;
+    tvl: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Date | string;
+};
+export type LiquidityPoolRecordUpdateInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    address?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenA?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenB?: Prisma.StringFieldUpdateOperationsInput | string;
+    tvl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type LiquidityPoolRecordUncheckedUpdateInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    address?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenA?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenB?: Prisma.StringFieldUpdateOperationsInput | string;
+    tvl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type LiquidityPoolRecordCreateManyInput = {
+    id?: string;
+    address: string;
+    tokenA: string;
+    tokenB: string;
+    tvl: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Date | string;
+};
+export type LiquidityPoolRecordUpdateManyMutationInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    address?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenA?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenB?: Prisma.StringFieldUpdateOperationsInput | string;
+    tvl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type LiquidityPoolRecordUncheckedUpdateManyInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    address?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenA?: Prisma.StringFieldUpdateOperationsInput | string;
+    tokenB?: Prisma.StringFieldUpdateOperationsInput | string;
+    tvl?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    volume24h?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+};
+export type LiquidityPoolRecordCountOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    address?: Prisma.SortOrder;
+    tokenA?: Prisma.SortOrder;
+    tokenB?: Prisma.SortOrder;
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type LiquidityPoolRecordAvgOrderByAggregateInput = {
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+};
+export type LiquidityPoolRecordMaxOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    address?: Prisma.SortOrder;
+    tokenA?: Prisma.SortOrder;
+    tokenB?: Prisma.SortOrder;
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type LiquidityPoolRecordMinOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    address?: Prisma.SortOrder;
+    tokenA?: Prisma.SortOrder;
+    tokenB?: Prisma.SortOrder;
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+    updatedAt?: Prisma.SortOrder;
+};
+export type LiquidityPoolRecordSumOrderByAggregateInput = {
+    tvl?: Prisma.SortOrder;
+    price?: Prisma.SortOrder;
+    volume24h?: Prisma.SortOrder;
+};
+export type LiquidityPoolRecordSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    address?: boolean;
+    tokenA?: boolean;
+    tokenB?: boolean;
+    tvl?: boolean;
+    price?: boolean;
+    volume24h?: boolean;
+    updatedAt?: boolean;
+}, ExtArgs['result']['liquidityPoolRecord']>;
+export type LiquidityPoolRecordSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    address?: boolean;
+    tokenA?: boolean;
+    tokenB?: boolean;
+    tvl?: boolean;
+    price?: boolean;
+    volume24h?: boolean;
+    updatedAt?: boolean;
+}, ExtArgs['result']['liquidityPoolRecord']>;
+export type LiquidityPoolRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    address?: boolean;
+    tokenA?: boolean;
+    tokenB?: boolean;
+    tvl?: boolean;
+    price?: boolean;
+    volume24h?: boolean;
+    updatedAt?: boolean;
+}, ExtArgs['result']['liquidityPoolRecord']>;
+export type LiquidityPoolRecordSelectScalar = {
+    id?: boolean;
+    address?: boolean;
+    tokenA?: boolean;
+    tokenB?: boolean;
+    tvl?: boolean;
+    price?: boolean;
+    volume24h?: boolean;
+    updatedAt?: boolean;
+};
+export type LiquidityPoolRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<'id' | 'address' | 'tokenA' | 'tokenB' | 'tvl' | 'price' | 'volume24h' | 'updatedAt', ExtArgs['result']['liquidityPoolRecord']>;
+export type $LiquidityPoolRecordPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    name: 'LiquidityPoolRecord';
+    objects: {};
+    scalars: runtime.Types.Extensions.GetPayloadResult<{
+        id: string;
+        address: string;
+        tokenA: string;
+        tokenB: string;
+        tvl: runtime.Decimal;
+        price: runtime.Decimal;
+        volume24h: runtime.Decimal;
+        updatedAt: Date;
+    }, ExtArgs['result']['liquidityPoolRecord']>;
+    composites: {};
+};
+export type LiquidityPoolRecordGetPayload<S extends boolean | null | undefined | LiquidityPoolRecordDefaultArgs> = runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload, S>;
+export type LiquidityPoolRecordCountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = Omit<LiquidityPoolRecordFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+    select?: LiquidityPoolRecordCountAggregateInputType | true;
+};
+export interface LiquidityPoolRecordDelegate<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: {
+        types: Prisma.TypeMap<ExtArgs>['model']['LiquidityPoolRecord'];
+        meta: {
+            name: 'LiquidityPoolRecord';
+        };
+    };
+    /**
+     * Find zero or one LiquidityPoolRecord that matches the filter.
+     * @param {LiquidityPoolRecordFindUniqueArgs} args - Arguments to find a LiquidityPoolRecord
+     * @example
+     * // Get one LiquidityPoolRecord
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LiquidityPoolRecordFindUniqueArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordFindUniqueArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'findUnique', GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find one LiquidityPoolRecord that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {LiquidityPoolRecordFindUniqueOrThrowArgs} args - Arguments to find a LiquidityPoolRecord
+     * @example
+     * // Get one LiquidityPoolRecord
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LiquidityPoolRecordFindUniqueOrThrowArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordFindUniqueOrThrowArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find the first LiquidityPoolRecord that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordFindFirstArgs} args - Arguments to find a LiquidityPoolRecord
+     * @example
+     * // Get one LiquidityPoolRecord
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LiquidityPoolRecordFindFirstArgs>(args?: Prisma.SelectSubset<T, LiquidityPoolRecordFindFirstArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'findFirst', GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find the first LiquidityPoolRecord that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordFindFirstOrThrowArgs} args - Arguments to find a LiquidityPoolRecord
+     * @example
+     * // Get one LiquidityPoolRecord
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LiquidityPoolRecordFindFirstOrThrowArgs>(args?: Prisma.SelectSubset<T, LiquidityPoolRecordFindFirstOrThrowArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'findFirstOrThrow', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find zero or more LiquidityPoolRecords that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LiquidityPoolRecords
+     * const liquidityPoolRecords = await prisma.liquidityPoolRecord.findMany()
+     *
+     * // Get first 10 LiquidityPoolRecords
+     * const liquidityPoolRecords = await prisma.liquidityPoolRecord.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const liquidityPoolRecordWithIdOnly = await prisma.liquidityPoolRecord.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends LiquidityPoolRecordFindManyArgs>(args?: Prisma.SelectSubset<T, LiquidityPoolRecordFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>>;
+    /**
+     * Create a LiquidityPoolRecord.
+     * @param {LiquidityPoolRecordCreateArgs} args - Arguments to create a LiquidityPoolRecord.
+     * @example
+     * // Create one LiquidityPoolRecord
+     * const LiquidityPoolRecord = await prisma.liquidityPoolRecord.create({
+     *   data: {
+     *     // ... data to create a LiquidityPoolRecord
+     *   }
+     * })
+     *
+     */
+    create<T extends LiquidityPoolRecordCreateArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordCreateArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'create', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Create many LiquidityPoolRecords.
+     * @param {LiquidityPoolRecordCreateManyArgs} args - Arguments to create many LiquidityPoolRecords.
+     * @example
+     * // Create many LiquidityPoolRecords
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends LiquidityPoolRecordCreateManyArgs>(args?: Prisma.SelectSubset<T, LiquidityPoolRecordCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Create many LiquidityPoolRecords and returns the data saved in the database.
+     * @param {LiquidityPoolRecordCreateManyAndReturnArgs} args - Arguments to create many LiquidityPoolRecords.
+     * @example
+     * // Create many LiquidityPoolRecords
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many LiquidityPoolRecords and only return the `id`
+     * const liquidityPoolRecordWithIdOnly = await prisma.liquidityPoolRecord.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends LiquidityPoolRecordCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, LiquidityPoolRecordCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'createManyAndReturn', GlobalOmitOptions>>;
+    /**
+     * Delete a LiquidityPoolRecord.
+     * @param {LiquidityPoolRecordDeleteArgs} args - Arguments to delete one LiquidityPoolRecord.
+     * @example
+     * // Delete one LiquidityPoolRecord
+     * const LiquidityPoolRecord = await prisma.liquidityPoolRecord.delete({
+     *   where: {
+     *     // ... filter to delete one LiquidityPoolRecord
+     *   }
+     * })
+     *
+     */
+    delete<T extends LiquidityPoolRecordDeleteArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordDeleteArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Update one LiquidityPoolRecord.
+     * @param {LiquidityPoolRecordUpdateArgs} args - Arguments to update one LiquidityPoolRecord.
+     * @example
+     * // Update one LiquidityPoolRecord
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends LiquidityPoolRecordUpdateArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordUpdateArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'update', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Delete zero or more LiquidityPoolRecords.
+     * @param {LiquidityPoolRecordDeleteManyArgs} args - Arguments to filter LiquidityPoolRecords to delete.
+     * @example
+     * // Delete a few LiquidityPoolRecords
+     * const { count } = await prisma.liquidityPoolRecord.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends LiquidityPoolRecordDeleteManyArgs>(args?: Prisma.SelectSubset<T, LiquidityPoolRecordDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Update zero or more LiquidityPoolRecords.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LiquidityPoolRecords
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends LiquidityPoolRecordUpdateManyArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Update zero or more LiquidityPoolRecords and returns the data updated in the database.
+     * @param {LiquidityPoolRecordUpdateManyAndReturnArgs} args - Arguments to update many LiquidityPoolRecords.
+     * @example
+     * // Update many LiquidityPoolRecords
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more LiquidityPoolRecords and only return the `id`
+     * const liquidityPoolRecordWithIdOnly = await prisma.liquidityPoolRecord.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends LiquidityPoolRecordUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'updateManyAndReturn', GlobalOmitOptions>>;
+    /**
+     * Create or update one LiquidityPoolRecord.
+     * @param {LiquidityPoolRecordUpsertArgs} args - Arguments to update or create a LiquidityPoolRecord.
+     * @example
+     * // Update or create a LiquidityPoolRecord
+     * const liquidityPoolRecord = await prisma.liquidityPoolRecord.upsert({
+     *   create: {
+     *     // ... data to create a LiquidityPoolRecord
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LiquidityPoolRecord we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LiquidityPoolRecordUpsertArgs>(args: Prisma.SelectSubset<T, LiquidityPoolRecordUpsertArgs<ExtArgs>>): Prisma.Prisma__LiquidityPoolRecordClient<runtime.Types.Result.GetResult<Prisma.$LiquidityPoolRecordPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Count the number of LiquidityPoolRecords.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordCountArgs} args - Arguments to filter LiquidityPoolRecords to count.
+     * @example
+     * // Count the number of LiquidityPoolRecords
+     * const count = await prisma.liquidityPoolRecord.count({
+     *   where: {
+     *     // ... the filter for the LiquidityPoolRecords we want to count
+     *   }
+     * })
+     **/
+    count<T extends LiquidityPoolRecordCountArgs>(args?: Prisma.Subset<T, LiquidityPoolRecordCountArgs>): Prisma.PrismaPromise<T extends runtime.Types.Utils.Record<'select', any> ? T['select'] extends true ? number : Prisma.GetScalarType<T['select'], LiquidityPoolRecordCountAggregateOutputType> : number>;
+    /**
+     * Allows you to perform aggregations operations on a LiquidityPoolRecord.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends LiquidityPoolRecordAggregateArgs>(args: Prisma.Subset<T, LiquidityPoolRecordAggregateArgs>): Prisma.PrismaPromise<GetLiquidityPoolRecordAggregateType<T>>;
+    /**
+     * Group by LiquidityPoolRecord.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LiquidityPoolRecordGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<T extends LiquidityPoolRecordGroupByArgs, HasSelectOrTake extends Prisma.Or<Prisma.Extends<'skip', Prisma.Keys<T>>, Prisma.Extends<'take', Prisma.Keys<T>>>, OrderByArg extends Prisma.True extends HasSelectOrTake ? {
+        orderBy: LiquidityPoolRecordGroupByArgs['orderBy'];
+    } : {
+        orderBy?: LiquidityPoolRecordGroupByArgs['orderBy'];
+    }, OrderFields extends Prisma.ExcludeUnderscoreKeys<Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>>, ByFields extends Prisma.MaybeTupleToUnion<T['by']>, ByValid extends Prisma.Has<ByFields, OrderFields>, HavingFields extends Prisma.GetHavingFields<T['having']>, HavingValid extends Prisma.Has<ByFields, HavingFields>, ByEmpty extends T['by'] extends never[] ? Prisma.True : Prisma.False, InputErrors extends ByEmpty extends Prisma.True ? `Error: "by" must not be empty.` : HavingValid extends Prisma.False ? {
+        [P in HavingFields]: P extends ByFields ? never : P extends string ? `Error: Field "${P}" used in "having" needs to be provided in "by".` : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+    }[HavingFields] : 'take' extends Prisma.Keys<T> ? 'orderBy' extends Prisma.Keys<T> ? ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields] : 'Error: If you provide "take", you also need to provide "orderBy"' : 'skip' extends Prisma.Keys<T> ? 'orderBy' extends Prisma.Keys<T> ? ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields] : 'Error: If you provide "skip", you also need to provide "orderBy"' : ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields]>(args: Prisma.SubsetIntersection<T, LiquidityPoolRecordGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLiquidityPoolRecordGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the LiquidityPoolRecord model
+     */
+    readonly fields: LiquidityPoolRecordFieldRefs;
+}
+/**
+ * The delegate class that acts as a "Promise-like" for LiquidityPoolRecord.
+ * Why is this prefixed with `Prisma__`?
+ * Because we want to prevent naming conflicts as mentioned in
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export interface Prisma__LiquidityPoolRecordClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
+}
+/**
+ * Fields of the LiquidityPoolRecord model
+ */
+export interface LiquidityPoolRecordFieldRefs {
+    readonly id: Prisma.FieldRef<'LiquidityPoolRecord', 'String'>;
+    readonly address: Prisma.FieldRef<'LiquidityPoolRecord', 'String'>;
+    readonly tokenA: Prisma.FieldRef<'LiquidityPoolRecord', 'String'>;
+    readonly tokenB: Prisma.FieldRef<'LiquidityPoolRecord', 'String'>;
+    readonly tvl: Prisma.FieldRef<'LiquidityPoolRecord', 'Decimal'>;
+    readonly price: Prisma.FieldRef<'LiquidityPoolRecord', 'Decimal'>;
+    readonly volume24h: Prisma.FieldRef<'LiquidityPoolRecord', 'Decimal'>;
+    readonly updatedAt: Prisma.FieldRef<'LiquidityPoolRecord', 'DateTime'>;
+}
+/**
+ * LiquidityPoolRecord findUnique
+ */
+export type LiquidityPoolRecordFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which LiquidityPoolRecord to fetch.
+     */
+    where: Prisma.LiquidityPoolRecordWhereUniqueInput;
+};
+/**
+ * LiquidityPoolRecord findUniqueOrThrow
+ */
+export type LiquidityPoolRecordFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which LiquidityPoolRecord to fetch.
+     */
+    where: Prisma.LiquidityPoolRecordWhereUniqueInput;
+};
+/**
+ * LiquidityPoolRecord findFirst
+ */
+export type LiquidityPoolRecordFindFirstArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which LiquidityPoolRecord to fetch.
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of LiquidityPoolRecords to fetch.
+     */
+    orderBy?: Prisma.LiquidityPoolRecordOrderByWithRelationInput | Prisma.LiquidityPoolRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for LiquidityPoolRecords.
+     */
+    cursor?: Prisma.LiquidityPoolRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` LiquidityPoolRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` LiquidityPoolRecords.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of LiquidityPoolRecords.
+     */
+    distinct?: Prisma.LiquidityPoolRecordScalarFieldEnum | Prisma.LiquidityPoolRecordScalarFieldEnum[];
+};
+/**
+ * LiquidityPoolRecord findFirstOrThrow
+ */
+export type LiquidityPoolRecordFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which LiquidityPoolRecord to fetch.
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of LiquidityPoolRecords to fetch.
+     */
+    orderBy?: Prisma.LiquidityPoolRecordOrderByWithRelationInput | Prisma.LiquidityPoolRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for LiquidityPoolRecords.
+     */
+    cursor?: Prisma.LiquidityPoolRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` LiquidityPoolRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` LiquidityPoolRecords.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of LiquidityPoolRecords.
+     */
+    distinct?: Prisma.LiquidityPoolRecordScalarFieldEnum | Prisma.LiquidityPoolRecordScalarFieldEnum[];
+};
+/**
+ * LiquidityPoolRecord findMany
+ */
+export type LiquidityPoolRecordFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which LiquidityPoolRecords to fetch.
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of LiquidityPoolRecords to fetch.
+     */
+    orderBy?: Prisma.LiquidityPoolRecordOrderByWithRelationInput | Prisma.LiquidityPoolRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing LiquidityPoolRecords.
+     */
+    cursor?: Prisma.LiquidityPoolRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` LiquidityPoolRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` LiquidityPoolRecords.
+     */
+    skip?: number;
+    distinct?: Prisma.LiquidityPoolRecordScalarFieldEnum | Prisma.LiquidityPoolRecordScalarFieldEnum[];
+};
+/**
+ * LiquidityPoolRecord create
+ */
+export type LiquidityPoolRecordCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * The data needed to create a LiquidityPoolRecord.
+     */
+    data: Prisma.XOR<Prisma.LiquidityPoolRecordCreateInput, Prisma.LiquidityPoolRecordUncheckedCreateInput>;
+};
+/**
+ * LiquidityPoolRecord createMany
+ */
+export type LiquidityPoolRecordCreateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LiquidityPoolRecords.
+     */
+    data: Prisma.LiquidityPoolRecordCreateManyInput | Prisma.LiquidityPoolRecordCreateManyInput[];
+    skipDuplicates?: boolean;
+};
+/**
+ * LiquidityPoolRecord createManyAndReturn
+ */
+export type LiquidityPoolRecordCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * The data used to create many LiquidityPoolRecords.
+     */
+    data: Prisma.LiquidityPoolRecordCreateManyInput | Prisma.LiquidityPoolRecordCreateManyInput[];
+    skipDuplicates?: boolean;
+};
+/**
+ * LiquidityPoolRecord update
+ */
+export type LiquidityPoolRecordUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * The data needed to update a LiquidityPoolRecord.
+     */
+    data: Prisma.XOR<Prisma.LiquidityPoolRecordUpdateInput, Prisma.LiquidityPoolRecordUncheckedUpdateInput>;
+    /**
+     * Choose, which LiquidityPoolRecord to update.
+     */
+    where: Prisma.LiquidityPoolRecordWhereUniqueInput;
+};
+/**
+ * LiquidityPoolRecord updateMany
+ */
+export type LiquidityPoolRecordUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LiquidityPoolRecords.
+     */
+    data: Prisma.XOR<Prisma.LiquidityPoolRecordUpdateManyMutationInput, Prisma.LiquidityPoolRecordUncheckedUpdateManyInput>;
+    /**
+     * Filter which LiquidityPoolRecords to update
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * Limit how many LiquidityPoolRecords to update.
+     */
+    limit?: number;
+};
+/**
+ * LiquidityPoolRecord updateManyAndReturn
+ */
+export type LiquidityPoolRecordUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * The data used to update LiquidityPoolRecords.
+     */
+    data: Prisma.XOR<Prisma.LiquidityPoolRecordUpdateManyMutationInput, Prisma.LiquidityPoolRecordUncheckedUpdateManyInput>;
+    /**
+     * Filter which LiquidityPoolRecords to update
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * Limit how many LiquidityPoolRecords to update.
+     */
+    limit?: number;
+};
+/**
+ * LiquidityPoolRecord upsert
+ */
+export type LiquidityPoolRecordUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * The filter to search for the LiquidityPoolRecord to update in case it exists.
+     */
+    where: Prisma.LiquidityPoolRecordWhereUniqueInput;
+    /**
+     * In case the LiquidityPoolRecord found by the `where` argument doesn't exist, create a new LiquidityPoolRecord with this data.
+     */
+    create: Prisma.XOR<Prisma.LiquidityPoolRecordCreateInput, Prisma.LiquidityPoolRecordUncheckedCreateInput>;
+    /**
+     * In case the LiquidityPoolRecord was found with the provided `where` argument, update it with this data.
+     */
+    update: Prisma.XOR<Prisma.LiquidityPoolRecordUpdateInput, Prisma.LiquidityPoolRecordUncheckedUpdateInput>;
+};
+/**
+ * LiquidityPoolRecord delete
+ */
+export type LiquidityPoolRecordDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+    /**
+     * Filter which LiquidityPoolRecord to delete.
+     */
+    where: Prisma.LiquidityPoolRecordWhereUniqueInput;
+};
+/**
+ * LiquidityPoolRecord deleteMany
+ */
+export type LiquidityPoolRecordDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Filter which LiquidityPoolRecords to delete
+     */
+    where?: Prisma.LiquidityPoolRecordWhereInput;
+    /**
+     * Limit how many LiquidityPoolRecords to delete.
+     */
+    limit?: number;
+};
+/**
+ * LiquidityPoolRecord without action
+ */
+export type LiquidityPoolRecordDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LiquidityPoolRecord
+     */
+    select?: Prisma.LiquidityPoolRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the LiquidityPoolRecord
+     */
+    omit?: Prisma.LiquidityPoolRecordOmit<ExtArgs> | null;
+};
+export {};
+//# sourceMappingURL=LiquidityPoolRecord.d.ts.map

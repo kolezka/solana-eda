@@ -1,42 +1,23 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES2021",
     "lib": ["ES2021"],
-    "declaration": true,
-    "removeComments": true,
-    "allowSyntheticDefaultImports": true,
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "declarationMap": true,
     "skipLibCheck": true,
-    "verbatimModuleSyntax": false,
-    "strict": false,
-    "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false,
-    "noImplicitThis": false,
-    "noImplicitOverride": false,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noEmit": false,
-    "sourceMap": true,
-    "types": ["node", "jest"],
-    "paths": {
-      "@solana-eda/types": ["../../packages/types/src"],
-      "@solana-eda/events": ["../../packages/events/src"],
-      "@solana-eda/config": ["../../packages/config/src"],
-      "@solana-eda/database": ["../../packages/database/src"],
-      "@solana-eda/monitoring": ["../../packages/monitoring/src"],
-      "@solana-eda/error-handling": ["../../packages/error-handling/src"],
-      "@solana-eda/solana-client": ["../../packages/solana-client/src"]
-    }
+    "esModuleInterop": true,
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+  "exclude": ["node_modules", "dist", "test"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"],
+    "transpileOnly": true
+  }
 }

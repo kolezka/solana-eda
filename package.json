@@ -8,9 +8,7 @@
     "burn-detector": "pnpm --filter @solana-eda/burn-detector",
     "liquidity-monitor": "pnpm --filter @solana-eda/liquidity-monitor",
     "market-detector": "pnpm --filter @solana-eda/market-detector",
-    "price-aggregator": "pnpm --filter @solana-eda/price-aggregator",
-    "trading-bot": "pnpm --filter @solana-eda/trading-bot",
-    "rabbitmq": "pnpm --filter @solana-eda/rabbitmq",
+    "market-discover": "pnpm --filter @solana-eda/market-discover",
     "build": "pnpm --filter './packages/**' --filter './workers/**' build",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""

@@ -1,17 +1,14 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "composite": false,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "noEmit": false,
-    "allowImportingTsExtensions": false,
+    "rootDir": "./src",
     "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
     "esModuleInterop": true,
-    "verbatimModuleSyntax": false,
-    "paths": {}
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

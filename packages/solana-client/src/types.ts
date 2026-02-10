@@ -1,110 +1,142 @@
+import type { Commitment, Connection, PublicKey } from '@solana/web3.js';
+
 /**
- * DEX Quote interface
- * Represents a price quote from a DEX for a token swap
+ * Connection configuration options
  */
-export interface DEXQuote {
-  /** Input token mint address */
-  inputMint: string;
-  /** Output token mint address */
-  outputMint: string;
-  /** Amount of input tokens (in smallest unit) */
-  inAmount: string;
-  /** Expected amount of output tokens (in smallest unit) */
-  outAmount: string;
-  /** Price impact as a percentage (e.g., 0.5 for 0.5%) */
-  priceImpactPct: number;
-  /** Optional route plan for complex swaps */
-  routePlan?: RouteStep[];
+export interface ConnectionConfig {
+  /** HTTP RPC endpoint URL */
+  httpUrl: string;
+  /** WebSocket endpoint URL (optional, will be derived from httpUrl if not provided) */
+  wsUrl?: string;
+  /** Commitment level */
+  commitment?: Commitment;
+  /** Enable RPC pooling for failover */
+  enablePooling?: boolean;
+  /** RPC pool URLs (if pooling is enabled) */
+  rpcPoolUrls?: string[];
+  /** WebSocket reconnection configuration */
+  wsReconnect?: boolean | WebSocketReconnectConfig;
 }
 
 /**
- * Route step for multi-hop swaps
+ * WebSocket reconnection configuration
  */
-export interface RouteStep {
-  /** DEX name for this step */
-  dex: string;
-  /** Input token for this step */
-  inputMint: string;
-  /** Output token for this step */
-  outputMint: string;
-  /** Percentage of total input to route through this step */
-  percent: number;
+export interface WebSocketReconnectConfig {
+  /** Maximum number of reconnection attempts */
+  maxAttempts?: number;
+  /** Base delay in milliseconds for exponential backoff */
+  baseDelayMs?: number;
+  /** Maximum delay in milliseconds */
+  maxDelayMs?: number;
+  /** Jitter to add to delay in milliseconds */
+  jitterMs?: number;
 }
 
 /**
- * DEX Swap Result interface
- * Represents the result of executing a swap on a DEX
+ * Connection state enum
  */
-export interface DEXSwapResult {
-  /** Transaction signature (null if failed) */
-  signature: string | null;
-  /** Whether the swap succeeded */
-  success: boolean;
-  /** Actual amount received (in smallest unit) */
-  amountOut: string;
-  /** Actual slippage experienced as a percentage */
-  actualSlippage: number;
-  /** Error message if swap failed */
-  error?: string;
+export enum ConnectionState {
+  DISCONNECTED = 'disconnected',
+  CONNECTING = 'connecting',
+  CONNECTED = 'connected',
+  RECONNECTING = 'reconnecting',
+  FAILED = 'failed',
 }
 
 /**
- * Best Quote interface
- * Extends DEXQuote with the DEX name that provided the quote
+ * RPC pool entry
  */
-export interface BestQuote extends DEXQuote {
-  /** Name of the DEX providing this quote */
-  dex: string;
-  /** Accounts involved in the swap (for priority fee calculation) */
-  accountsInvolved?: string[];
+export interface RpcPoolEntry {
+  url: string;
+  connection: Connection;
+  healthy: boolean;
+  lastCheck?: Date;
+  latency?: number;
+  failureCount: number;
 }
 
 /**
- * Swap Result interface
- * Extends DEXSwapResult with the DEX name where the swap was executed
+ * OpenBook market state (simplified from MARKET_STATE_LAYOUT_V3)
  */
-export interface SwapResult extends DEXSwapResult {
-  /** Name of the DEX where the swap was executed */
-  dex: string;
+export interface MarketState {
+  /** Market account address */
+  address: PublicKey;
+  /** Base token mint */
+  baseMint: PublicKey;
+  /** Quote token mint */
+  quoteMint: PublicKey;
+  /** Bids address */
+  bids: PublicKey;
+  /** Asks address */
+  asks: PublicKey;
+  /** Event queue address */
+  eventQueue: PublicKey;
+  /** Coin vault address */
+  baseVault: PublicKey;
+  /** PC vault address */
+  quoteVault: PublicKey;
+  /** Base lot size */
+  baseLotSize: bigint;
+  /** Quote lot size */
+  quoteLotSize: bigint;
+  /** Fee rate BPS */
+  feeRateBps: number;
+  /** Market flags (default: 0) */
+  flags?: number;
+  /** Exists flag (default: true) */
+  exists?: boolean;
 }
 
 /**
- * Options for swap execution
+ * Market discovery filters
  */
-export interface SwapExecutionOptions {
-  /** Priority fee in micro-lamports for transaction processing */
-  priorityFee?: number;
-  /** Compute unit limit for the transaction */
-  computeUnits?: number;
+export interface MarketFilters {
+  /** Quote mint to filter by (e.g., USDT, USDC) */
+  quoteMint?: string | PublicKey;
+  /** Base mints to filter by (optional) */
+  baseMints?: Array<string | PublicKey>;
+  /** Commitment level for subscriptions */
+  commitment?: Commitment;
 }
 
 /**
- * DEX Client interface
- * Interface that all DEX clients must implement
+ * Market discovery callback
  */
-export interface DEXClient {
-  /** Name of the DEX */
-  name: string;
+export type MarketDiscoveryCallback = (market: MarketState) => void | Promise<void>;
 
-  /**
-   * Get a quote for a token swap
-   * @param inputMint Input token mint address
-   * @param outputMint Output token mint address
-   * @param amount Amount of input tokens (in smallest unit)
-   * @returns Promise<DEXQuote> Quote information
-   */
-  getQuote(inputMint: string, outputMint: string, amount: string): Promise<DEXQuote>;
+/**
+ * Market discovery error callback
+ */
+export type MarketErrorCallback = (error: Error) => void | Promise<void>;
 
-  /**
-   * Execute a swap on this DEX
-   * @param quote The quote to execute
-   * @param maxSlippageBps Maximum slippage in basis points (e.g., 50 for 0.5%)
-   * @param options Optional execution parameters (priority fees, compute units)
-   * @returns Promise<DEXSwapResult> Swap execution result
-   */
-  executeSwap(
-    quote: DEXQuote,
-    maxSlippageBps?: number,
-    options?: SwapExecutionOptions,
-  ): Promise<DEXSwapResult>;
+/**
+ * OpenBook client configuration
+ */
+export interface OpenBookClientConfig {
+  /** Solana connection instance */
+  connection: Connection;
+  /** Market discovery filters */
+  filters?: MarketFilters;
+  /** Callback when a new market is discovered */
+  onMarketDiscovered: MarketDiscoveryCallback;
+  /** Callback when an error occurs */
+  onError?: MarketErrorCallback;
+  /** OpenBook program ID (default: MAINNET) */
+  programId?: PublicKey;
+}
+
+/**
+ * Account change callback result
+ */
+export interface AccountChangeResult {
+  account_id: string;
+  account_info: {
+    data: Buffer;
+    owner: PublicKey;
+    executable: boolean;
+    lamports: number;
+  };
+  context: {
+    slot: number;
+  };
 }

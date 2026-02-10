@@ -1,0 +1,1177 @@
+import type * as runtime from '@prisma/client/runtime/client';
+import type * as Prisma from '../internal/prismaNamespace';
+/**
+ * Model TokenValidationRecord
+ *
+ */
+export type TokenValidationRecordModel = runtime.Types.Result.DefaultSelection<Prisma.$TokenValidationRecordPayload>;
+export type AggregateTokenValidationRecord = {
+    _count: TokenValidationRecordCountAggregateOutputType | null;
+    _avg: TokenValidationRecordAvgAggregateOutputType | null;
+    _sum: TokenValidationRecordSumAggregateOutputType | null;
+    _min: TokenValidationRecordMinAggregateOutputType | null;
+    _max: TokenValidationRecordMaxAggregateOutputType | null;
+};
+export type TokenValidationRecordAvgAggregateOutputType = {
+    lpBurnedCount: number | null;
+    confidence: runtime.Decimal | null;
+};
+export type TokenValidationRecordSumAggregateOutputType = {
+    lpBurnedCount: number | null;
+    confidence: runtime.Decimal | null;
+};
+export type TokenValidationRecordMinAggregateOutputType = {
+    id: string | null;
+    token: string | null;
+    isRenounced: boolean | null;
+    isBurned: boolean | null;
+    isLocked: boolean | null;
+    lpBurnedCount: number | null;
+    confidence: runtime.Decimal | null;
+    validatedAt: Date | null;
+    txSignature: string | null;
+};
+export type TokenValidationRecordMaxAggregateOutputType = {
+    id: string | null;
+    token: string | null;
+    isRenounced: boolean | null;
+    isBurned: boolean | null;
+    isLocked: boolean | null;
+    lpBurnedCount: number | null;
+    confidence: runtime.Decimal | null;
+    validatedAt: Date | null;
+    txSignature: string | null;
+};
+export type TokenValidationRecordCountAggregateOutputType = {
+    id: number;
+    token: number;
+    isRenounced: number;
+    isBurned: number;
+    isLocked: number;
+    lpBurnedCount: number;
+    confidence: number;
+    validatedAt: number;
+    txSignature: number;
+    validationDetails: number;
+    _all: number;
+};
+export type TokenValidationRecordAvgAggregateInputType = {
+    lpBurnedCount?: true;
+    confidence?: true;
+};
+export type TokenValidationRecordSumAggregateInputType = {
+    lpBurnedCount?: true;
+    confidence?: true;
+};
+export type TokenValidationRecordMinAggregateInputType = {
+    id?: true;
+    token?: true;
+    isRenounced?: true;
+    isBurned?: true;
+    isLocked?: true;
+    lpBurnedCount?: true;
+    confidence?: true;
+    validatedAt?: true;
+    txSignature?: true;
+};
+export type TokenValidationRecordMaxAggregateInputType = {
+    id?: true;
+    token?: true;
+    isRenounced?: true;
+    isBurned?: true;
+    isLocked?: true;
+    lpBurnedCount?: true;
+    confidence?: true;
+    validatedAt?: true;
+    txSignature?: true;
+};
+export type TokenValidationRecordCountAggregateInputType = {
+    id?: true;
+    token?: true;
+    isRenounced?: true;
+    isBurned?: true;
+    isLocked?: true;
+    lpBurnedCount?: true;
+    confidence?: true;
+    validatedAt?: true;
+    txSignature?: true;
+    validationDetails?: true;
+    _all?: true;
+};
+export type TokenValidationRecordAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Filter which TokenValidationRecord to aggregate.
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TokenValidationRecords to fetch.
+     */
+    orderBy?: Prisma.TokenValidationRecordOrderByWithRelationInput | Prisma.TokenValidationRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the start position
+     */
+    cursor?: Prisma.TokenValidationRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TokenValidationRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TokenValidationRecords.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Count returned TokenValidationRecords
+     **/
+    _count?: true | TokenValidationRecordCountAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to average
+     **/
+    _avg?: TokenValidationRecordAvgAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to sum
+     **/
+    _sum?: TokenValidationRecordSumAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the minimum value
+     **/
+    _min?: TokenValidationRecordMinAggregateInputType;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     *
+     * Select which fields to find the maximum value
+     **/
+    _max?: TokenValidationRecordMaxAggregateInputType;
+};
+export type GetTokenValidationRecordAggregateType<T extends TokenValidationRecordAggregateArgs> = {
+    [P in keyof T & keyof AggregateTokenValidationRecord]: P extends '_count' | 'count' ? T[P] extends true ? number : Prisma.GetScalarType<T[P], AggregateTokenValidationRecord[P]> : Prisma.GetScalarType<T[P], AggregateTokenValidationRecord[P]>;
+};
+export type TokenValidationRecordGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.TokenValidationRecordWhereInput;
+    orderBy?: Prisma.TokenValidationRecordOrderByWithAggregationInput | Prisma.TokenValidationRecordOrderByWithAggregationInput[];
+    by: Prisma.TokenValidationRecordScalarFieldEnum[] | Prisma.TokenValidationRecordScalarFieldEnum;
+    having?: Prisma.TokenValidationRecordScalarWhereWithAggregatesInput;
+    take?: number;
+    skip?: number;
+    _count?: TokenValidationRecordCountAggregateInputType | true;
+    _avg?: TokenValidationRecordAvgAggregateInputType;
+    _sum?: TokenValidationRecordSumAggregateInputType;
+    _min?: TokenValidationRecordMinAggregateInputType;
+    _max?: TokenValidationRecordMaxAggregateInputType;
+};
+export type TokenValidationRecordGroupByOutputType = {
+    id: string;
+    token: string;
+    isRenounced: boolean | null;
+    isBurned: boolean | null;
+    isLocked: boolean | null;
+    lpBurnedCount: number | null;
+    confidence: runtime.Decimal;
+    validatedAt: Date;
+    txSignature: string | null;
+    validationDetails: runtime.JsonValue | null;
+    _count: TokenValidationRecordCountAggregateOutputType | null;
+    _avg: TokenValidationRecordAvgAggregateOutputType | null;
+    _sum: TokenValidationRecordSumAggregateOutputType | null;
+    _min: TokenValidationRecordMinAggregateOutputType | null;
+    _max: TokenValidationRecordMaxAggregateOutputType | null;
+};
+type GetTokenValidationRecordGroupByPayload<T extends TokenValidationRecordGroupByArgs> = Prisma.PrismaPromise<Array<Prisma.PickEnumerable<TokenValidationRecordGroupByOutputType, T['by']> & {
+    [P in keyof T & keyof TokenValidationRecordGroupByOutputType]: P extends '_count' ? T[P] extends boolean ? number : Prisma.GetScalarType<T[P], TokenValidationRecordGroupByOutputType[P]> : Prisma.GetScalarType<T[P], TokenValidationRecordGroupByOutputType[P]>;
+}>>;
+export type TokenValidationRecordWhereInput = {
+    AND?: Prisma.TokenValidationRecordWhereInput | Prisma.TokenValidationRecordWhereInput[];
+    OR?: Prisma.TokenValidationRecordWhereInput[];
+    NOT?: Prisma.TokenValidationRecordWhereInput | Prisma.TokenValidationRecordWhereInput[];
+    id?: Prisma.StringFilter<'TokenValidationRecord'> | string;
+    token?: Prisma.StringFilter<'TokenValidationRecord'> | string;
+    isRenounced?: Prisma.BoolNullableFilter<'TokenValidationRecord'> | boolean | null;
+    isBurned?: Prisma.BoolNullableFilter<'TokenValidationRecord'> | boolean | null;
+    isLocked?: Prisma.BoolNullableFilter<'TokenValidationRecord'> | boolean | null;
+    lpBurnedCount?: Prisma.IntNullableFilter<'TokenValidationRecord'> | number | null;
+    confidence?: Prisma.DecimalFilter<'TokenValidationRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeFilter<'TokenValidationRecord'> | Date | string;
+    txSignature?: Prisma.StringNullableFilter<'TokenValidationRecord'> | string | null;
+    validationDetails?: Prisma.JsonNullableFilter<'TokenValidationRecord'>;
+};
+export type TokenValidationRecordOrderByWithRelationInput = {
+    id?: Prisma.SortOrder;
+    token?: Prisma.SortOrder;
+    isRenounced?: Prisma.SortOrderInput | Prisma.SortOrder;
+    isBurned?: Prisma.SortOrderInput | Prisma.SortOrder;
+    isLocked?: Prisma.SortOrderInput | Prisma.SortOrder;
+    lpBurnedCount?: Prisma.SortOrderInput | Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+    validatedAt?: Prisma.SortOrder;
+    txSignature?: Prisma.SortOrderInput | Prisma.SortOrder;
+    validationDetails?: Prisma.SortOrderInput | Prisma.SortOrder;
+};
+export type TokenValidationRecordWhereUniqueInput = Prisma.AtLeast<{
+    id?: string;
+    AND?: Prisma.TokenValidationRecordWhereInput | Prisma.TokenValidationRecordWhereInput[];
+    OR?: Prisma.TokenValidationRecordWhereInput[];
+    NOT?: Prisma.TokenValidationRecordWhereInput | Prisma.TokenValidationRecordWhereInput[];
+    token?: Prisma.StringFilter<'TokenValidationRecord'> | string;
+    isRenounced?: Prisma.BoolNullableFilter<'TokenValidationRecord'> | boolean | null;
+    isBurned?: Prisma.BoolNullableFilter<'TokenValidationRecord'> | boolean | null;
+    isLocked?: Prisma.BoolNullableFilter<'TokenValidationRecord'> | boolean | null;
+    lpBurnedCount?: Prisma.IntNullableFilter<'TokenValidationRecord'> | number | null;
+    confidence?: Prisma.DecimalFilter<'TokenValidationRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeFilter<'TokenValidationRecord'> | Date | string;
+    txSignature?: Prisma.StringNullableFilter<'TokenValidationRecord'> | string | null;
+    validationDetails?: Prisma.JsonNullableFilter<'TokenValidationRecord'>;
+}, 'id'>;
+export type TokenValidationRecordOrderByWithAggregationInput = {
+    id?: Prisma.SortOrder;
+    token?: Prisma.SortOrder;
+    isRenounced?: Prisma.SortOrderInput | Prisma.SortOrder;
+    isBurned?: Prisma.SortOrderInput | Prisma.SortOrder;
+    isLocked?: Prisma.SortOrderInput | Prisma.SortOrder;
+    lpBurnedCount?: Prisma.SortOrderInput | Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+    validatedAt?: Prisma.SortOrder;
+    txSignature?: Prisma.SortOrderInput | Prisma.SortOrder;
+    validationDetails?: Prisma.SortOrderInput | Prisma.SortOrder;
+    _count?: Prisma.TokenValidationRecordCountOrderByAggregateInput;
+    _avg?: Prisma.TokenValidationRecordAvgOrderByAggregateInput;
+    _max?: Prisma.TokenValidationRecordMaxOrderByAggregateInput;
+    _min?: Prisma.TokenValidationRecordMinOrderByAggregateInput;
+    _sum?: Prisma.TokenValidationRecordSumOrderByAggregateInput;
+};
+export type TokenValidationRecordScalarWhereWithAggregatesInput = {
+    AND?: Prisma.TokenValidationRecordScalarWhereWithAggregatesInput | Prisma.TokenValidationRecordScalarWhereWithAggregatesInput[];
+    OR?: Prisma.TokenValidationRecordScalarWhereWithAggregatesInput[];
+    NOT?: Prisma.TokenValidationRecordScalarWhereWithAggregatesInput | Prisma.TokenValidationRecordScalarWhereWithAggregatesInput[];
+    id?: Prisma.StringWithAggregatesFilter<'TokenValidationRecord'> | string;
+    token?: Prisma.StringWithAggregatesFilter<'TokenValidationRecord'> | string;
+    isRenounced?: Prisma.BoolNullableWithAggregatesFilter<'TokenValidationRecord'> | boolean | null;
+    isBurned?: Prisma.BoolNullableWithAggregatesFilter<'TokenValidationRecord'> | boolean | null;
+    isLocked?: Prisma.BoolNullableWithAggregatesFilter<'TokenValidationRecord'> | boolean | null;
+    lpBurnedCount?: Prisma.IntNullableWithAggregatesFilter<'TokenValidationRecord'> | number | null;
+    confidence?: Prisma.DecimalWithAggregatesFilter<'TokenValidationRecord'> | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeWithAggregatesFilter<'TokenValidationRecord'> | Date | string;
+    txSignature?: Prisma.StringNullableWithAggregatesFilter<'TokenValidationRecord'> | string | null;
+    validationDetails?: Prisma.JsonNullableWithAggregatesFilter<'TokenValidationRecord'>;
+};
+export type TokenValidationRecordCreateInput = {
+    id?: string;
+    token: string;
+    isRenounced?: boolean | null;
+    isBurned?: boolean | null;
+    isLocked?: boolean | null;
+    lpBurnedCount?: number | null;
+    confidence: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Date | string;
+    txSignature?: string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordUncheckedCreateInput = {
+    id?: string;
+    token: string;
+    isRenounced?: boolean | null;
+    isBurned?: boolean | null;
+    isLocked?: boolean | null;
+    lpBurnedCount?: number | null;
+    confidence: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Date | string;
+    txSignature?: string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordUpdateInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    token?: Prisma.StringFieldUpdateOperationsInput | string;
+    isRenounced?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isBurned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isLocked?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    lpBurnedCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    confidence?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    txSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordUncheckedUpdateInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    token?: Prisma.StringFieldUpdateOperationsInput | string;
+    isRenounced?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isBurned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isLocked?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    lpBurnedCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    confidence?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    txSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordCreateManyInput = {
+    id?: string;
+    token: string;
+    isRenounced?: boolean | null;
+    isBurned?: boolean | null;
+    isLocked?: boolean | null;
+    lpBurnedCount?: number | null;
+    confidence: runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Date | string;
+    txSignature?: string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordUpdateManyMutationInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    token?: Prisma.StringFieldUpdateOperationsInput | string;
+    isRenounced?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isBurned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isLocked?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    lpBurnedCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    confidence?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    txSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordUncheckedUpdateManyInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    token?: Prisma.StringFieldUpdateOperationsInput | string;
+    isRenounced?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isBurned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    isLocked?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null;
+    lpBurnedCount?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
+    confidence?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string;
+    validatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    txSignature?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    validationDetails?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue;
+};
+export type TokenValidationRecordCountOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    token?: Prisma.SortOrder;
+    isRenounced?: Prisma.SortOrder;
+    isBurned?: Prisma.SortOrder;
+    isLocked?: Prisma.SortOrder;
+    lpBurnedCount?: Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+    validatedAt?: Prisma.SortOrder;
+    txSignature?: Prisma.SortOrder;
+    validationDetails?: Prisma.SortOrder;
+};
+export type TokenValidationRecordAvgOrderByAggregateInput = {
+    lpBurnedCount?: Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+};
+export type TokenValidationRecordMaxOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    token?: Prisma.SortOrder;
+    isRenounced?: Prisma.SortOrder;
+    isBurned?: Prisma.SortOrder;
+    isLocked?: Prisma.SortOrder;
+    lpBurnedCount?: Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+    validatedAt?: Prisma.SortOrder;
+    txSignature?: Prisma.SortOrder;
+};
+export type TokenValidationRecordMinOrderByAggregateInput = {
+    id?: Prisma.SortOrder;
+    token?: Prisma.SortOrder;
+    isRenounced?: Prisma.SortOrder;
+    isBurned?: Prisma.SortOrder;
+    isLocked?: Prisma.SortOrder;
+    lpBurnedCount?: Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+    validatedAt?: Prisma.SortOrder;
+    txSignature?: Prisma.SortOrder;
+};
+export type TokenValidationRecordSumOrderByAggregateInput = {
+    lpBurnedCount?: Prisma.SortOrder;
+    confidence?: Prisma.SortOrder;
+};
+export type NullableBoolFieldUpdateOperationsInput = {
+    set?: boolean | null;
+};
+export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null;
+    increment?: number;
+    decrement?: number;
+    multiply?: number;
+    divide?: number;
+};
+export type TokenValidationRecordSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    token?: boolean;
+    isRenounced?: boolean;
+    isBurned?: boolean;
+    isLocked?: boolean;
+    lpBurnedCount?: boolean;
+    confidence?: boolean;
+    validatedAt?: boolean;
+    txSignature?: boolean;
+    validationDetails?: boolean;
+}, ExtArgs['result']['tokenValidationRecord']>;
+export type TokenValidationRecordSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    token?: boolean;
+    isRenounced?: boolean;
+    isBurned?: boolean;
+    isLocked?: boolean;
+    lpBurnedCount?: boolean;
+    confidence?: boolean;
+    validatedAt?: boolean;
+    txSignature?: boolean;
+    validationDetails?: boolean;
+}, ExtArgs['result']['tokenValidationRecord']>;
+export type TokenValidationRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+    id?: boolean;
+    token?: boolean;
+    isRenounced?: boolean;
+    isBurned?: boolean;
+    isLocked?: boolean;
+    lpBurnedCount?: boolean;
+    confidence?: boolean;
+    validatedAt?: boolean;
+    txSignature?: boolean;
+    validationDetails?: boolean;
+}, ExtArgs['result']['tokenValidationRecord']>;
+export type TokenValidationRecordSelectScalar = {
+    id?: boolean;
+    token?: boolean;
+    isRenounced?: boolean;
+    isBurned?: boolean;
+    isLocked?: boolean;
+    lpBurnedCount?: boolean;
+    confidence?: boolean;
+    validatedAt?: boolean;
+    txSignature?: boolean;
+    validationDetails?: boolean;
+};
+export type TokenValidationRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<'id' | 'token' | 'isRenounced' | 'isBurned' | 'isLocked' | 'lpBurnedCount' | 'confidence' | 'validatedAt' | 'txSignature' | 'validationDetails', ExtArgs['result']['tokenValidationRecord']>;
+export type $TokenValidationRecordPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    name: 'TokenValidationRecord';
+    objects: {};
+    scalars: runtime.Types.Extensions.GetPayloadResult<{
+        id: string;
+        token: string;
+        isRenounced: boolean | null;
+        isBurned: boolean | null;
+        isLocked: boolean | null;
+        lpBurnedCount: number | null;
+        confidence: runtime.Decimal;
+        validatedAt: Date;
+        txSignature: string | null;
+        validationDetails: runtime.JsonValue | null;
+    }, ExtArgs['result']['tokenValidationRecord']>;
+    composites: {};
+};
+export type TokenValidationRecordGetPayload<S extends boolean | null | undefined | TokenValidationRecordDefaultArgs> = runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload, S>;
+export type TokenValidationRecordCountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = Omit<TokenValidationRecordFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+    select?: TokenValidationRecordCountAggregateInputType | true;
+};
+export interface TokenValidationRecordDelegate<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: {
+        types: Prisma.TypeMap<ExtArgs>['model']['TokenValidationRecord'];
+        meta: {
+            name: 'TokenValidationRecord';
+        };
+    };
+    /**
+     * Find zero or one TokenValidationRecord that matches the filter.
+     * @param {TokenValidationRecordFindUniqueArgs} args - Arguments to find a TokenValidationRecord
+     * @example
+     * // Get one TokenValidationRecord
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TokenValidationRecordFindUniqueArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordFindUniqueArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'findUnique', GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find one TokenValidationRecord that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TokenValidationRecordFindUniqueOrThrowArgs} args - Arguments to find a TokenValidationRecord
+     * @example
+     * // Get one TokenValidationRecord
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TokenValidationRecordFindUniqueOrThrowArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordFindUniqueOrThrowArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find the first TokenValidationRecord that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordFindFirstArgs} args - Arguments to find a TokenValidationRecord
+     * @example
+     * // Get one TokenValidationRecord
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TokenValidationRecordFindFirstArgs>(args?: Prisma.SelectSubset<T, TokenValidationRecordFindFirstArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'findFirst', GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find the first TokenValidationRecord that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordFindFirstOrThrowArgs} args - Arguments to find a TokenValidationRecord
+     * @example
+     * // Get one TokenValidationRecord
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TokenValidationRecordFindFirstOrThrowArgs>(args?: Prisma.SelectSubset<T, TokenValidationRecordFindFirstOrThrowArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'findFirstOrThrow', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Find zero or more TokenValidationRecords that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all TokenValidationRecords
+     * const tokenValidationRecords = await prisma.tokenValidationRecord.findMany()
+     *
+     * // Get first 10 TokenValidationRecords
+     * const tokenValidationRecords = await prisma.tokenValidationRecord.findMany({ take: 10 })
+     *
+     * // Only select the `id`
+     * const tokenValidationRecordWithIdOnly = await prisma.tokenValidationRecord.findMany({ select: { id: true } })
+     *
+     */
+    findMany<T extends TokenValidationRecordFindManyArgs>(args?: Prisma.SelectSubset<T, TokenValidationRecordFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>>;
+    /**
+     * Create a TokenValidationRecord.
+     * @param {TokenValidationRecordCreateArgs} args - Arguments to create a TokenValidationRecord.
+     * @example
+     * // Create one TokenValidationRecord
+     * const TokenValidationRecord = await prisma.tokenValidationRecord.create({
+     *   data: {
+     *     // ... data to create a TokenValidationRecord
+     *   }
+     * })
+     *
+     */
+    create<T extends TokenValidationRecordCreateArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordCreateArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'create', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Create many TokenValidationRecords.
+     * @param {TokenValidationRecordCreateManyArgs} args - Arguments to create many TokenValidationRecords.
+     * @example
+     * // Create many TokenValidationRecords
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     */
+    createMany<T extends TokenValidationRecordCreateManyArgs>(args?: Prisma.SelectSubset<T, TokenValidationRecordCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Create many TokenValidationRecords and returns the data saved in the database.
+     * @param {TokenValidationRecordCreateManyAndReturnArgs} args - Arguments to create many TokenValidationRecords.
+     * @example
+     * // Create many TokenValidationRecords
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Create many TokenValidationRecords and only return the `id`
+     * const tokenValidationRecordWithIdOnly = await prisma.tokenValidationRecord.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    createManyAndReturn<T extends TokenValidationRecordCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, TokenValidationRecordCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'createManyAndReturn', GlobalOmitOptions>>;
+    /**
+     * Delete a TokenValidationRecord.
+     * @param {TokenValidationRecordDeleteArgs} args - Arguments to delete one TokenValidationRecord.
+     * @example
+     * // Delete one TokenValidationRecord
+     * const TokenValidationRecord = await prisma.tokenValidationRecord.delete({
+     *   where: {
+     *     // ... filter to delete one TokenValidationRecord
+     *   }
+     * })
+     *
+     */
+    delete<T extends TokenValidationRecordDeleteArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordDeleteArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Update one TokenValidationRecord.
+     * @param {TokenValidationRecordUpdateArgs} args - Arguments to update one TokenValidationRecord.
+     * @example
+     * // Update one TokenValidationRecord
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    update<T extends TokenValidationRecordUpdateArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordUpdateArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'update', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Delete zero or more TokenValidationRecords.
+     * @param {TokenValidationRecordDeleteManyArgs} args - Arguments to filter TokenValidationRecords to delete.
+     * @example
+     * // Delete a few TokenValidationRecords
+     * const { count } = await prisma.tokenValidationRecord.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     *
+     */
+    deleteMany<T extends TokenValidationRecordDeleteManyArgs>(args?: Prisma.SelectSubset<T, TokenValidationRecordDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Update zero or more TokenValidationRecords.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many TokenValidationRecords
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     *
+     */
+    updateMany<T extends TokenValidationRecordUpdateManyArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>;
+    /**
+     * Update zero or more TokenValidationRecords and returns the data updated in the database.
+     * @param {TokenValidationRecordUpdateManyAndReturnArgs} args - Arguments to update many TokenValidationRecords.
+     * @example
+     * // Update many TokenValidationRecords
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *
+     * // Update zero or more TokenValidationRecords and only return the `id`
+     * const tokenValidationRecordWithIdOnly = await prisma.tokenValidationRecord.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     *
+     */
+    updateManyAndReturn<T extends TokenValidationRecordUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'updateManyAndReturn', GlobalOmitOptions>>;
+    /**
+     * Create or update one TokenValidationRecord.
+     * @param {TokenValidationRecordUpsertArgs} args - Arguments to update or create a TokenValidationRecord.
+     * @example
+     * // Update or create a TokenValidationRecord
+     * const tokenValidationRecord = await prisma.tokenValidationRecord.upsert({
+     *   create: {
+     *     // ... data to create a TokenValidationRecord
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the TokenValidationRecord we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TokenValidationRecordUpsertArgs>(args: Prisma.SelectSubset<T, TokenValidationRecordUpsertArgs<ExtArgs>>): Prisma.Prisma__TokenValidationRecordClient<runtime.Types.Result.GetResult<Prisma.$TokenValidationRecordPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>;
+    /**
+     * Count the number of TokenValidationRecords.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordCountArgs} args - Arguments to filter TokenValidationRecords to count.
+     * @example
+     * // Count the number of TokenValidationRecords
+     * const count = await prisma.tokenValidationRecord.count({
+     *   where: {
+     *     // ... the filter for the TokenValidationRecords we want to count
+     *   }
+     * })
+     **/
+    count<T extends TokenValidationRecordCountArgs>(args?: Prisma.Subset<T, TokenValidationRecordCountArgs>): Prisma.PrismaPromise<T extends runtime.Types.Utils.Record<'select', any> ? T['select'] extends true ? number : Prisma.GetScalarType<T['select'], TokenValidationRecordCountAggregateOutputType> : number>;
+    /**
+     * Allows you to perform aggregations operations on a TokenValidationRecord.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+     **/
+    aggregate<T extends TokenValidationRecordAggregateArgs>(args: Prisma.Subset<T, TokenValidationRecordAggregateArgs>): Prisma.PrismaPromise<GetTokenValidationRecordAggregateType<T>>;
+    /**
+     * Group by TokenValidationRecord.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TokenValidationRecordGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     *
+     **/
+    groupBy<T extends TokenValidationRecordGroupByArgs, HasSelectOrTake extends Prisma.Or<Prisma.Extends<'skip', Prisma.Keys<T>>, Prisma.Extends<'take', Prisma.Keys<T>>>, OrderByArg extends Prisma.True extends HasSelectOrTake ? {
+        orderBy: TokenValidationRecordGroupByArgs['orderBy'];
+    } : {
+        orderBy?: TokenValidationRecordGroupByArgs['orderBy'];
+    }, OrderFields extends Prisma.ExcludeUnderscoreKeys<Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>>, ByFields extends Prisma.MaybeTupleToUnion<T['by']>, ByValid extends Prisma.Has<ByFields, OrderFields>, HavingFields extends Prisma.GetHavingFields<T['having']>, HavingValid extends Prisma.Has<ByFields, HavingFields>, ByEmpty extends T['by'] extends never[] ? Prisma.True : Prisma.False, InputErrors extends ByEmpty extends Prisma.True ? `Error: "by" must not be empty.` : HavingValid extends Prisma.False ? {
+        [P in HavingFields]: P extends ByFields ? never : P extends string ? `Error: Field "${P}" used in "having" needs to be provided in "by".` : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+    }[HavingFields] : 'take' extends Prisma.Keys<T> ? 'orderBy' extends Prisma.Keys<T> ? ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields] : 'Error: If you provide "take", you also need to provide "orderBy"' : 'skip' extends Prisma.Keys<T> ? 'orderBy' extends Prisma.Keys<T> ? ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields] : 'Error: If you provide "skip", you also need to provide "orderBy"' : ByValid extends Prisma.True ? {} : {
+        [P in OrderFields]: P extends ByFields ? never : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
+    }[OrderFields]>(args: Prisma.SubsetIntersection<T, TokenValidationRecordGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTokenValidationRecordGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    /**
+     * Fields of the TokenValidationRecord model
+     */
+    readonly fields: TokenValidationRecordFieldRefs;
+}
+/**
+ * The delegate class that acts as a "Promise-like" for TokenValidationRecord.
+ * Why is this prefixed with `Prisma__`?
+ * Because we want to prevent naming conflicts as mentioned in
+ * https://github.com/prisma/prisma-client-js/issues/707
+ */
+export interface Prisma__TokenValidationRecordClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: 'PrismaPromise';
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): runtime.Types.Utils.JsPromise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
+}
+/**
+ * Fields of the TokenValidationRecord model
+ */
+export interface TokenValidationRecordFieldRefs {
+    readonly id: Prisma.FieldRef<'TokenValidationRecord', 'String'>;
+    readonly token: Prisma.FieldRef<'TokenValidationRecord', 'String'>;
+    readonly isRenounced: Prisma.FieldRef<'TokenValidationRecord', 'Boolean'>;
+    readonly isBurned: Prisma.FieldRef<'TokenValidationRecord', 'Boolean'>;
+    readonly isLocked: Prisma.FieldRef<'TokenValidationRecord', 'Boolean'>;
+    readonly lpBurnedCount: Prisma.FieldRef<'TokenValidationRecord', 'Int'>;
+    readonly confidence: Prisma.FieldRef<'TokenValidationRecord', 'Decimal'>;
+    readonly validatedAt: Prisma.FieldRef<'TokenValidationRecord', 'DateTime'>;
+    readonly txSignature: Prisma.FieldRef<'TokenValidationRecord', 'String'>;
+    readonly validationDetails: Prisma.FieldRef<'TokenValidationRecord', 'Json'>;
+}
+/**
+ * TokenValidationRecord findUnique
+ */
+export type TokenValidationRecordFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which TokenValidationRecord to fetch.
+     */
+    where: Prisma.TokenValidationRecordWhereUniqueInput;
+};
+/**
+ * TokenValidationRecord findUniqueOrThrow
+ */
+export type TokenValidationRecordFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which TokenValidationRecord to fetch.
+     */
+    where: Prisma.TokenValidationRecordWhereUniqueInput;
+};
+/**
+ * TokenValidationRecord findFirst
+ */
+export type TokenValidationRecordFindFirstArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which TokenValidationRecord to fetch.
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TokenValidationRecords to fetch.
+     */
+    orderBy?: Prisma.TokenValidationRecordOrderByWithRelationInput | Prisma.TokenValidationRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for TokenValidationRecords.
+     */
+    cursor?: Prisma.TokenValidationRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TokenValidationRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TokenValidationRecords.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of TokenValidationRecords.
+     */
+    distinct?: Prisma.TokenValidationRecordScalarFieldEnum | Prisma.TokenValidationRecordScalarFieldEnum[];
+};
+/**
+ * TokenValidationRecord findFirstOrThrow
+ */
+export type TokenValidationRecordFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which TokenValidationRecord to fetch.
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TokenValidationRecords to fetch.
+     */
+    orderBy?: Prisma.TokenValidationRecordOrderByWithRelationInput | Prisma.TokenValidationRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for searching for TokenValidationRecords.
+     */
+    cursor?: Prisma.TokenValidationRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TokenValidationRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TokenValidationRecords.
+     */
+    skip?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     *
+     * Filter by unique combinations of TokenValidationRecords.
+     */
+    distinct?: Prisma.TokenValidationRecordScalarFieldEnum | Prisma.TokenValidationRecordScalarFieldEnum[];
+};
+/**
+ * TokenValidationRecord findMany
+ */
+export type TokenValidationRecordFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * Filter, which TokenValidationRecords to fetch.
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     *
+     * Determine the order of TokenValidationRecords to fetch.
+     */
+    orderBy?: Prisma.TokenValidationRecordOrderByWithRelationInput | Prisma.TokenValidationRecordOrderByWithRelationInput[];
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     *
+     * Sets the position for listing TokenValidationRecords.
+     */
+    cursor?: Prisma.TokenValidationRecordWhereUniqueInput;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Take `±n` TokenValidationRecords from the position of the cursor.
+     */
+    take?: number;
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *
+     * Skip the first `n` TokenValidationRecords.
+     */
+    skip?: number;
+    distinct?: Prisma.TokenValidationRecordScalarFieldEnum | Prisma.TokenValidationRecordScalarFieldEnum[];
+};
+/**
+ * TokenValidationRecord create
+ */
+export type TokenValidationRecordCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * The data needed to create a TokenValidationRecord.
+     */
+    data: Prisma.XOR<Prisma.TokenValidationRecordCreateInput, Prisma.TokenValidationRecordUncheckedCreateInput>;
+};
+/**
+ * TokenValidationRecord createMany
+ */
+export type TokenValidationRecordCreateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many TokenValidationRecords.
+     */
+    data: Prisma.TokenValidationRecordCreateManyInput | Prisma.TokenValidationRecordCreateManyInput[];
+    skipDuplicates?: boolean;
+};
+/**
+ * TokenValidationRecord createManyAndReturn
+ */
+export type TokenValidationRecordCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelectCreateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * The data used to create many TokenValidationRecords.
+     */
+    data: Prisma.TokenValidationRecordCreateManyInput | Prisma.TokenValidationRecordCreateManyInput[];
+    skipDuplicates?: boolean;
+};
+/**
+ * TokenValidationRecord update
+ */
+export type TokenValidationRecordUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * The data needed to update a TokenValidationRecord.
+     */
+    data: Prisma.XOR<Prisma.TokenValidationRecordUpdateInput, Prisma.TokenValidationRecordUncheckedUpdateInput>;
+    /**
+     * Choose, which TokenValidationRecord to update.
+     */
+    where: Prisma.TokenValidationRecordWhereUniqueInput;
+};
+/**
+ * TokenValidationRecord updateMany
+ */
+export type TokenValidationRecordUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * The data used to update TokenValidationRecords.
+     */
+    data: Prisma.XOR<Prisma.TokenValidationRecordUpdateManyMutationInput, Prisma.TokenValidationRecordUncheckedUpdateManyInput>;
+    /**
+     * Filter which TokenValidationRecords to update
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * Limit how many TokenValidationRecords to update.
+     */
+    limit?: number;
+};
+/**
+ * TokenValidationRecord updateManyAndReturn
+ */
+export type TokenValidationRecordUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelectUpdateManyAndReturn<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * The data used to update TokenValidationRecords.
+     */
+    data: Prisma.XOR<Prisma.TokenValidationRecordUpdateManyMutationInput, Prisma.TokenValidationRecordUncheckedUpdateManyInput>;
+    /**
+     * Filter which TokenValidationRecords to update
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * Limit how many TokenValidationRecords to update.
+     */
+    limit?: number;
+};
+/**
+ * TokenValidationRecord upsert
+ */
+export type TokenValidationRecordUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * The filter to search for the TokenValidationRecord to update in case it exists.
+     */
+    where: Prisma.TokenValidationRecordWhereUniqueInput;
+    /**
+     * In case the TokenValidationRecord found by the `where` argument doesn't exist, create a new TokenValidationRecord with this data.
+     */
+    create: Prisma.XOR<Prisma.TokenValidationRecordCreateInput, Prisma.TokenValidationRecordUncheckedCreateInput>;
+    /**
+     * In case the TokenValidationRecord was found with the provided `where` argument, update it with this data.
+     */
+    update: Prisma.XOR<Prisma.TokenValidationRecordUpdateInput, Prisma.TokenValidationRecordUncheckedUpdateInput>;
+};
+/**
+ * TokenValidationRecord delete
+ */
+export type TokenValidationRecordDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+    /**
+     * Filter which TokenValidationRecord to delete.
+     */
+    where: Prisma.TokenValidationRecordWhereUniqueInput;
+};
+/**
+ * TokenValidationRecord deleteMany
+ */
+export type TokenValidationRecordDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Filter which TokenValidationRecords to delete
+     */
+    where?: Prisma.TokenValidationRecordWhereInput;
+    /**
+     * Limit how many TokenValidationRecords to delete.
+     */
+    limit?: number;
+};
+/**
+ * TokenValidationRecord without action
+ */
+export type TokenValidationRecordDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the TokenValidationRecord
+     */
+    select?: Prisma.TokenValidationRecordSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the TokenValidationRecord
+     */
+    omit?: Prisma.TokenValidationRecordOmit<ExtArgs> | null;
+};
+export {};
+//# sourceMappingURL=TokenValidationRecord.d.ts.map

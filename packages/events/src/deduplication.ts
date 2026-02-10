@@ -6,6 +6,7 @@
 import { createClient } from './index';
 import type { Redis } from 'ioredis';
 import type { AnyEvent } from '@solana-eda/types';
+import type { Job, JobsOptions } from 'bullmq';
 import { randomUUID } from 'crypto';
 
 /**
@@ -446,6 +447,56 @@ export class InMemoryEventDeduplicator {
   size(): number {
     return this.events.size;
   }
+}
+
+/**
+ * Generate a BullMQ job ID from an event
+ * Uses eventId (UUID) when available, otherwise generates one
+ */
+export function generateJobId(event: AnyEvent): string {
+  // Prefer eventId (UUID) when available
+  if (event.eventId) {
+    return event.eventId;
+  }
+
+  // Generate a new UUID if no eventId exists
+  return randomUUID();
+}
+
+/**
+ * Create BullMQ job options with deduplication support
+ * Sets the jobId to ensure idempotency
+ */
+export function createJobOptionsWithDeduplication(
+  event: AnyEvent,
+  customOptions?: JobsOptions,
+): JobsOptions {
+  const jobId = generateJobId(event);
+
+  return {
+    jobId,
+    ...customOptions,
+  };
+}
+
+/**
+ * Check if a BullMQ job is a duplicate based on job data
+ * This is useful when jobs already exist in the queue
+ */
+export async function checkJobDuplicate(
+  job: Job,
+  deduplicator: EventDeduplicator | InMemoryEventDeduplicator,
+): Promise<boolean> {
+  // Extract event data from job
+  const jobData = job.data as any;
+
+  if (!jobData.type || !jobData.id) {
+    return false;
+  }
+
+  // Check if the event has been processed before
+  const result = await deduplicator.check(jobData);
+  return result.isDuplicate;
 }
 
 /**

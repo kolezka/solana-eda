@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "preserve",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+
+    // Path aliases for workspace packages (source paths, no build required)
+    "baseUrl": ".",
+    "paths": {
+      "@solana-eda/types": ["./packages/types/src"],
+      "@solana-eda/events": ["./packages/events/src"],
+      "@solana-eda/config": ["./packages/config/src"],
+      "@solana-eda/database": ["./packages/database/src"],
+      "@solana-eda/monitoring": ["./packages/monitoring/src"],
+      "@solana-eda/error-handling": ["./packages/error-handling/src"],
+      "@solana-eda/queue": ["./packages/queue/src"],
+      "@solana-eda/queue-bullmq": ["./packages/queue-bullmq/src"],
+      "@solana-eda/solana-client": ["./packages/solana-client/src"]
+    },
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+
+    // Emit settings
+    "declaration": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
