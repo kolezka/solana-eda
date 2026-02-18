@@ -4,7 +4,7 @@ import { TradeSettingsRepository, TradeRepository } from '@solana-eda/database';
 import type { TradeSettings, TradeWithPosition } from '@solana-eda/database';
 import { PrismaService } from '../../prisma/prisma.service';
 
-interface VolumeStats {
+export interface VolumeStats {
   period: string;
   totalVolume: number;
   winRate: number;

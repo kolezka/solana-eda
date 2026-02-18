@@ -12,7 +12,11 @@
     "declarationMap": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@solana-eda/*": ["../../packages/*/src"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test"],

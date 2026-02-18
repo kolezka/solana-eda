@@ -141,7 +141,7 @@ export class EventsSseController {
       const filter = clientId.split(':')[1];
 
       // Filter events based on client subscription
-      if (this.shouldSendEvent(eventType, filter)) {
+      if (filter && this.shouldSendEvent(eventType, filter)) {
         emitter.emit('message', {
           data: JSON.stringify(eventData),
         });
